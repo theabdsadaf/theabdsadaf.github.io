@@ -3,84 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Sadaf Abdullah — Developer & Competitive Programmer. Connect via GitHub, Codeforces, Facebook, Instagram, and more.">
-<meta name="keywords" content="Sadaf Abdullah, theabdsadaf, developer, competitive programmer, GitHub, Codeforces">
-<meta property="og:title" content="Sadaf Abdullah — Contact">
-<meta property="og:description" content="Connect with Sadaf Abdullah across social and developer platforms.">
+<meta name="google-site-verification" content="BS6rOiRFvV6CmYv4Phdbf9jVF5euEmPMh98Jd_J3KHI" />
+<meta name="description" content="Sadaf Abdullah — Computer Science student at North South University, competitive programmer, and web developer from Dhaka, Bangladesh.">
+<meta name="keywords" content="Sadaf Abdullah, theabdsadaf, developer, competitive programmer, North South University, Bangladesh, CSE, web development">
+<meta property="og:title" content="Sadaf Abdullah — About">
+<meta property="og:description" content="Computer Science student, competitive programmer, and web developer from Dhaka, Bangladesh.">
 <meta property="og:url" content="https://theabdsadaf.github.io">
 <title>Sadaf Abdullah</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0d0d0f;
-    --bg2: #18181c;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text1: #f0f0f5;
-    --text2: #a0a0b0;
-    --text3: #606070;
-    --accent: #7c6dfa;
-    --accent2: #a594ff;
-  }
-  html { scroll-behavior: smooth; }
-  body { background: var(--bg); color: var(--text1); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; min-height: 100vh; overflow-x: hidden; }
-  .bg-grid { position: fixed; inset: 0; z-index: 0; background-image: linear-gradient(rgba(124,109,250,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,109,250,0.04) 1px, transparent 1px); background-size: 48px 48px; animation: gridDrift 30s linear infinite; }
-  @keyframes gridDrift { 0%{background-position:0 0} 100%{background-position:48px 48px} }
-  .bg-orb { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; }
-  .orb1 { width: 400px; height: 400px; background: rgba(124,109,250,0.12); top: -100px; right: -80px; animation: float1 8s ease-in-out infinite; }
-  .orb2 { width: 300px; height: 300px; background: rgba(80,180,255,0.07); bottom: 0; left: -60px; animation: float2 10s ease-in-out infinite; }
-  @keyframes float1 { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(30px) scale(1.05)} }
-  @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
-  .wrap { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 60px 24px 80px; }
-  .avatar-ring { width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #50b4ff); padding: 3px; margin: 0 auto 20px; animation: spinRing 6s linear infinite; }
-  @keyframes spinRing { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
-  .avatar-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: var(--bg2); }
-  .avatar-inner img { width: 100%; height: 100%; object-fit: cover; object-position: center 10%; border-radius: 50%; }
-  .hero { text-align: center; margin-bottom: 48px; }
-  .hero-name { font-size: clamp(28px, 5vw, 40px); font-weight: 700; letter-spacing: -1px; background: linear-gradient(135deg, #f0f0f5 30%, #a594ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
-  .hero-handle { font-size: 14px; color: var(--accent2); font-family: 'Courier New', monospace; letter-spacing: 1px; margin-bottom: 14px; opacity: 0.8; }
-  .hero-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-  .tag { font-size: 12px; padding: 4px 12px; border-radius: 100px; border: 1px solid var(--border2); color: var(--text2); background: var(--bg2); }
-  .section-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; padding-left: 2px; }
-  .links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 40px; }
-  @media(max-width: 480px) { .links-grid { grid-template-columns: 1fr; } }
-  .link-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: var(--bg2); border: 1px solid var(--border); text-decoration: none; color: var(--text1); transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); cursor: pointer; position: relative; overflow: hidden; }
-  .link-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 50%, var(--card-glow, rgba(124,109,250,0.08)), transparent 70%); opacity: 0; transition: opacity 0.3s; }
-  .link-card:hover { transform: translateY(-3px) scale(1.02); border-color: var(--border2); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-  .link-card:hover::before { opacity: 1; }
-  .link-card:active { transform: scale(0.98); }
-  .link-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-  .link-info { flex: 1; min-width: 0; }
-  .link-name { font-size: 14px; font-weight: 600; line-height: 1.2; margin-bottom: 2px; }
-  .link-user { font-size: 12px; color: var(--text2); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .link-arrow { font-size: 14px; color: var(--text3); transition: transform 0.2s, color 0.2s; flex-shrink: 0; }
-  .link-card:hover .link-arrow { transform: translate(2px,-2px); color: var(--text2); }
-  .ic-email { background: rgba(124,109,250,0.15); color: #a594ff; --card-glow: rgba(124,109,250,0.1); }
-  .ic-fb    { background: rgba(24,119,242,0.15); color: #4a9eff; --card-glow: rgba(24,119,242,0.1); }
-  .ic-ig    { background: rgba(225,48,108,0.15); color: #f06292; --card-glow: rgba(225,48,108,0.1); }
-  .ic-x     { background: rgba(255,255,255,0.07); color: #e0e0e0; --card-glow: rgba(255,255,255,0.05); }
-  .ic-gh    { background: rgba(255,255,255,0.07); color: #e0e0e0; --card-glow: rgba(255,255,255,0.05); }
-  .ic-cf    { background: rgba(255,165,0,0.12); color: #ffb347; --card-glow: rgba(255,165,0,0.1); }
-  .site-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 14px; background: linear-gradient(135deg, rgba(124,109,250,0.12), rgba(80,180,255,0.06)); border: 1px solid rgba(124,109,250,0.3); margin-bottom: 40px; text-decoration: none; color: var(--text1); transition: all 0.25s ease; cursor: pointer; }
-  .site-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,109,250,0.2); }
-  .site-globe { font-size: 28px; }
-  .site-info { flex: 1; }
-  .site-title { font-size: 13px; color: var(--text2); margin-bottom: 2px; }
-  .site-url { font-size: 15px; font-weight: 600; color: var(--accent2); font-family: monospace; }
-  .footer { text-align: center; color: var(--text3); font-size: 12px; margin-top: 20px; }
-  .footer span { color: var(--accent2); }
-  .fade-in { opacity: 0; transform: translateY(16px); animation: fadeUp 0.5s ease forwards; }
-  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-  .d1{animation-delay:0.05s} .d2{animation-delay:0.12s} .d3{animation-delay:0.19s} .d4{animation-delay:0.26s} .d5{animation-delay:0.33s} .d6{animation-delay:0.4s} .d7{animation-delay:0.47s} .d8{animation-delay:0.54s}
-  .cursor { display: inline-block; width: 2px; height: 1em; background: var(--accent2); margin-left: 2px; vertical-align: middle; animation: blink 1s step-end infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d0f;
+  --bg2: #18181c;
+  --bg3: #1e1e24;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text1: #f0f0f5;
+  --text2: #a0a0b0;
+  --text3: #606070;
+  --accent: #7c6dfa;
+  --accent2: #a594ff;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text1); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+/* BG */
+.bg-grid { position: fixed; inset: 0; z-index: 0; background-image: linear-gradient(rgba(124,109,250,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,109,250,0.04) 1px, transparent 1px); background-size: 48px 48px; animation: gridDrift 30s linear infinite; }
+@keyframes gridDrift { 0%{background-position:0 0} 100%{background-position:48px 48px} }
+.bg-orb { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; }
+.orb1 { width: 400px; height: 400px; background: rgba(124,109,250,0.12); top: -100px; right: -80px; animation: float1 8s ease-in-out infinite; }
+.orb2 { width: 300px; height: 300px; background: rgba(80,180,255,0.07); bottom: 0; left: -60px; animation: float2 10s ease-in-out infinite; }
+@keyframes float1 { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(30px) scale(1.05)} }
+@keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: center;
+  padding: 16px 24px;
+}
+.nav-inner {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(13,13,15,0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 6px 8px;
+}
+.nav-link {
+  text-decoration: none;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 18px;
+  border-radius: 100px;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+}
+.nav-link:hover { color: var(--text1); background: rgba(255,255,255,0.07); }
+.nav-link.active { color: var(--text1); background: rgba(124,109,250,0.25); border: 1px solid rgba(124,109,250,0.3); }
+
+/* WRAP */
+.wrap { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 110px 24px 80px; }
+
+/* HERO */
+.avatar-ring { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #50b4ff); padding: 3px; margin: 0 auto 20px; animation: spinRing 6s linear infinite; }
+@keyframes spinRing { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+.avatar-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: var(--bg2); }
+.avatar-inner img { width: 100%; height: 100%; object-fit: cover; object-position: center 10%; border-radius: 50%; }
+.hero { text-align: center; margin-bottom: 56px; }
+.hero-name { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -1px; background: linear-gradient(135deg, #f0f0f5 30%, #a594ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
+.hero-handle { font-size: 14px; color: var(--accent2); font-family: 'Courier New', monospace; letter-spacing: 1px; margin-bottom: 16px; opacity: 0.8; }
+.hero-sub { font-size: 15px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto; }
+.hero-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.tag { font-size: 12px; padding: 5px 14px; border-radius: 100px; border: 1px solid var(--border2); color: var(--text2); background: var(--bg2); }
+
+/* BIO SECTIONS */
+.bio-section { margin-bottom: 40px; }
+.bio-heading {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent2); margin-bottom: 16px; padding-left: 2px;
+  display: flex; align-items: center; gap: 10px;
+}
+.bio-heading::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, rgba(124,109,250,0.3), transparent); }
+
+.bio-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  line-height: 1.8;
+  color: var(--text2);
+  font-size: 15px;
+}
+.bio-card p { margin-bottom: 14px; }
+.bio-card p:last-child { margin-bottom: 0; }
+
+/* TIMELINE */
+.timeline { display: flex; flex-direction: column; gap: 14px; }
+.tl-item {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 20px;
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 0 16px; align-items: start;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.tl-item:hover { border-color: var(--border2); transform: translateX(4px); }
+.tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent2); margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px rgba(165,148,255,0.5); }
+.tl-year { font-size: 11px; color: var(--accent2); font-family: monospace; letter-spacing: 1px; margin-bottom: 4px; }
+.tl-title { font-size: 14px; font-weight: 600; color: var(--text1); margin-bottom: 3px; }
+.tl-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* SKILLS */
+.skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width: 520px) { .skills-grid { grid-template-columns: 1fr; } }
+.skill-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 20px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.skill-card:hover { border-color: rgba(124,109,250,0.3); transform: translateY(-2px); }
+.skill-cat { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent2); margin-bottom: 10px; }
+.skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.skill-pill { font-size: 12px; padding: 4px 10px; border-radius: 6px; background: rgba(124,109,250,0.12); border: 1px solid rgba(124,109,250,0.2); color: var(--text1); }
+
+/* INTERESTS */
+.interests-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media(max-width: 520px) { .interests-grid { grid-template-columns: 1fr 1fr; } }
+.int-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 16px; text-align: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.int-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+.int-icon { font-size: 28px; margin-bottom: 10px; }
+.int-label { font-size: 13px; font-weight: 600; color: var(--text1); margin-bottom: 4px; }
+.int-desc { font-size: 11px; color: var(--text3); }
+
+/* VISION CARD */
+.vision-card {
+  background: linear-gradient(135deg, rgba(124,109,250,0.1), rgba(80,180,255,0.05));
+  border: 1px solid rgba(124,109,250,0.25);
+  border-radius: 16px; padding: 28px;
+  font-size: 15px; color: var(--text2); line-height: 1.8;
+}
+.vision-card strong { color: var(--accent2); }
+
+/* FOOTER */
+.footer { text-align: center; color: var(--text3); font-size: 12px; margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); }
+.footer span { color: var(--accent2); }
+
+/* ANIMATIONS */
+.fade-in { opacity: 0; transform: translateY(18px); animation: fadeUp 0.55s ease forwards; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+.d1{animation-delay:0.05s} .d2{animation-delay:0.12s} .d3{animation-delay:0.2s}
+.d4{animation-delay:0.28s} .d5{animation-delay:0.36s} .d6{animation-delay:0.44s}
+.d7{animation-delay:0.52s} .d8{animation-delay:0.6s} .d9{animation-delay:0.68s}
+.cursor { display: inline-block; width: 2px; height: 1em; background: var(--accent2); margin-left: 2px; vertical-align: middle; animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 </style>
 </head>
 <body>
 <div class="bg-grid"></div>
 <div class="bg-orb orb1"></div>
 <div class="bg-orb orb2"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-link active" href="index.html">About</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+  </div>
+</nav>
+
 <div class="wrap">
+
+  <!-- HERO -->
   <div class="hero fade-in d1">
     <div class="avatar-ring">
       <div class="avatar-inner">
@@ -89,95 +186,157 @@
     </div>
     <div class="hero-name">Sadaf Abdullah</div>
     <div class="hero-handle">@theabdsadaf<span class="cursor"></span></div>
+    <div class="hero-sub">Computer Science student · Competitive Programmer · Web Developer</div>
     <div class="hero-tags">
-      <span class="tag">Developer</span>
-      <span class="tag">Competitive Programmer</span>
-      <span class="tag">Open Source</span>
+      <span class="tag">North South University</span>
+      <span class="tag">Dhaka, Bangladesh</span>
+      <span class="tag">BSc CSE</span>
     </div>
   </div>
 
-  <a class="site-card fade-in d2" href="https://theabdsadaf.github.io" target="_blank" rel="noopener">
-    <div class="site-globe">🌐</div>
-    <div class="site-info">
-      <div class="site-title">Personal website</div>
-      <div class="site-url">theabdsadaf.github.io</div>
+  <!-- INTRODUCTION -->
+  <div class="bio-section fade-in d2">
+    <div class="bio-heading">Introduction</div>
+    <div class="bio-card">
+      <p>Born on May 20, 2004, in Narayanganj, Bangladesh, Sadaf Abdullah has grown into a driven and disciplined individual with a strong passion for technology, problem-solving, and continuous self-improvement. Currently residing in Bashundhara Residential Area, Dhaka, he is pursuing his academic journey in Computer Science and Engineering while actively building practical skills through teaching and programming.</p>
+      <p>With a growing skill set spanning web development, competitive programming, and software engineering, Sadaf is steadily carving a path toward a meaningful career in technology — one built on dedication, curiosity, and a commitment to lifelong learning.</p>
     </div>
-    <div class="link-arrow">↗</div>
-  </a>
-
-  <div class="section-label fade-in d3">Contact</div>
-  <div class="links-grid fade-in d3">
-    <a class="link-card" href="mailto:abdsadaf001@gmail.com">
-      <div class="link-icon ic-email">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-      </div>
-      <div class="link-info">
-        <div class="link-name">Email</div>
-        <div class="link-user">abdsadaf001@gmail.com</div>
-      </div>
-      <div class="link-arrow">↗</div>
-    </a>
   </div>
 
-  <div class="section-label fade-in d4">Social</div>
-  <div class="links-grid fade-in d4">
-    <a class="link-card" href="https://www.facebook.com/theabdsadaf" target="_blank" rel="noopener">
-      <div class="link-icon ic-fb">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+  <!-- EDUCATION TIMELINE -->
+  <div class="bio-section fade-in d3">
+    <div class="bio-heading">Education</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">2024 — Present</div>
+          <div class="tl-title">BSc in Computer Science & Engineering</div>
+          <div class="tl-desc">North South University, Dhaka — one of the leading private universities in Bangladesh. Focused on algorithms, data structures, programming, and software development.</div>
+        </div>
       </div>
-      <div class="link-info">
-        <div class="link-name">Facebook</div>
-        <div class="link-user">theabdsadaf</div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">2008 — 2023</div>
+          <div class="tl-title">Nursery through A Levels</div>
+          <div class="tl-desc">ABC International School — a long-term academic environment that shaped analytical thinking, discipline, and a curiosity for learning, with a strong foundation in mathematics and logical reasoning.</div>
+        </div>
       </div>
-      <div class="link-arrow">↗</div>
-    </a>
-    <a class="link-card" href="https://www.instagram.com/theabdsadaf/" target="_blank" rel="noopener">
-      <div class="link-icon ic-ig">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-      </div>
-      <div class="link-info">
-        <div class="link-name">Instagram</div>
-        <div class="link-user">theabdsadaf</div>
-      </div>
-      <div class="link-arrow">↗</div>
-    </a>
-    <a class="link-card" href="https://x.com/theabdsadaf" target="_blank" rel="noopener">
-      <div class="link-icon ic-x">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </div>
-      <div class="link-info">
-        <div class="link-name">X (Twitter)</div>
-        <div class="link-user">theabdsadaf</div>
-      </div>
-      <div class="link-arrow">↗</div>
-    </a>
+    </div>
   </div>
 
-  <div class="section-label fade-in d6">Developer</div>
-  <div class="links-grid fade-in d6">
-    <a class="link-card" href="https://github.com/theabdsadaf" target="_blank" rel="noopener">
-      <div class="link-icon ic-gh">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+  <!-- EXPERIENCE TIMELINE -->
+  <div class="bio-section fade-in d4">
+    <div class="bio-heading">Experience</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">2025 — Present</div>
+          <div class="tl-title">Private Tutor</div>
+          <div class="tl-desc">Currently tutoring a Class 7 student, demonstrating ongoing commitment to mentoring and knowledge sharing while enhancing leadership and interpersonal skills.</div>
+        </div>
       </div>
-      <div class="link-info">
-        <div class="link-name">GitHub</div>
-        <div class="link-user">theabdsadaf</div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">2023 — 2024</div>
+          <div class="tl-title">Private Tutor</div>
+          <div class="tl-desc">Taught Class 7 and Class 8 students, strengthening communication skills, patience, and the ability to explain complex concepts in simple, accessible ways.</div>
+        </div>
       </div>
-      <div class="link-arrow">↗</div>
-    </a>
-    <a class="link-card" href="https://codeforces.com/profile/theabdsadaf" target="_blank" rel="noopener">
-      <div class="link-icon ic-cf">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 7.5A1.5 1.5 0 013 6V3a1.5 1.5 0 013 0v3a1.5 1.5 0 01-1.5 1.5zm7.5 13.5A1.5 1.5 0 0110.5 19.5V3a1.5 1.5 0 013 0v16.5A1.5 1.5 0 0112 21zm7.5-9A1.5 1.5 0 0118 10.5V3a1.5 1.5 0 013 0v7.5A1.5 1.5 0 0119.5 12z"/></svg>
-      </div>
-      <div class="link-info">
-        <div class="link-name">Codeforces</div>
-        <div class="link-user">theabdsadaf</div>
-      </div>
-      <div class="link-arrow">↗</div>
-    </a>
+    </div>
   </div>
 
-  <div class="footer fade-in d8">Built with ♥ · <span>theabdsadaf.github.io</span></div>
+  <!-- SKILLS -->
+  <div class="bio-section fade-in d5">
+    <div class="bio-heading">Technical Skills</div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-cat">Frontend Development</div>
+        <div class="skill-tags">
+          <span class="skill-pill">HTML</span>
+          <span class="skill-pill">CSS</span>
+          <span class="skill-pill">JavaScript</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-cat">Programming Languages</div>
+        <div class="skill-tags">
+          <span class="skill-pill">C</span>
+          <span class="skill-pill">C++</span>
+          <span class="skill-pill">Java</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-cat">Competitive Programming</div>
+        <div class="skill-tags">
+          <span class="skill-pill">Algorithms</span>
+          <span class="skill-pill">Data Structures</span>
+          <span class="skill-pill">Codeforces</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-cat">Tools & Others</div>
+        <div class="skill-tags">
+          <span class="skill-pill">Git</span>
+          <span class="skill-pill">GitHub</span>
+          <span class="skill-pill">Problem Solving</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERESTS -->
+  <div class="bio-section fade-in d6">
+    <div class="bio-heading">Interests & Passions</div>
+    <div class="interests-grid">
+      <div class="int-card">
+        <div class="int-icon">⚡</div>
+        <div class="int-label">Competitive Programming</div>
+        <div class="int-desc">Algorithmic thinking & problem solving</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🛠️</div>
+        <div class="int-label">Web Development</div>
+        <div class="int-desc">Building efficient, user-friendly apps</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">💪</div>
+        <div class="int-label">Fitness</div>
+        <div class="int-desc">Regular workouts & balanced lifestyle</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🎨</div>
+        <div class="int-label">Graphic Design</div>
+        <div class="int-desc">Aesthetics & visual creativity</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">📷</div>
+        <div class="int-label">Photography</div>
+        <div class="int-desc">Attention to detail & composition</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">📚</div>
+        <div class="int-label">Teaching</div>
+        <div class="int-desc">Mentoring & knowledge sharing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISION -->
+  <div class="bio-section fade-in d7">
+    <div class="bio-heading">Personal Vision</div>
+    <div class="vision-card">
+      My long-term goal is to establish myself as a <strong>skilled software engineer and problem solver</strong>, contributing to innovative projects and impactful technologies. I aim to continuously improve my technical expertise, participate in competitive programming platforms, and explore opportunities in software development and tech-driven industries. With a strong academic background, practical teaching experience, and a growing skill set in programming and development, I am steadily progressing toward a successful career in technology — driven by <strong>dedication, adaptability, and a commitment to lifelong learning</strong>.
+    </div>
+  </div>
+
+  <div class="footer fade-in d8">
+    <p>Sadaf Abdullah · Dhaka, Bangladesh · <span>theabdsadaf.github.io</span></p>
+  </div>
+
 </div>
 </body>
 </html>
