@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NEON BEE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;
+  --grid-line:rgba(0,255,180,0.04);
+  --neon-green:#00ffb3;
+  --neon-pink:#ff2d6b;
+  --neon-blue:#00c8ff;
+  --neon-orange:#ff8c00;
+  --neon-yellow:#f5ff00;
+  --neon-purple:#b44fff;
+  --honey:#ffcc00;
+  --honey-glow:rgba(255,204,0,0.4);
+  --text:#c8f5e8;
+  --dim:#3a6b58;
+  --panel:rgba(0,255,180,0.04);
+  --panel-border:rgba(0,255,180,0.12);
+}
+
+html,body{
+  width:100%;height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  overflow:hidden;
+  cursor:none;
+  touch-action:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#cursor{
+  position:fixed;width:8px;height:8px;
+  background:var(--honey);
+  border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 10px var(--honey),0 0 20px var(--honey);
+}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:100;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none;
+}
+
+#bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 30s linear infinite;
+}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:40px 40px}}
+
+.corner{position:fixed;width:80px;height:80px;border-color:var(--honey);border-style:solid;opacity:0.3;z-index:1;}
+.corner-tl{top:20px;left:20px;border-width:2px 0 0 2px}
+.corner-tr{top:20px;right:20px;border-width:2px 2px 0 0}
+.corner-bl{bottom:20px;left:20px;border-width:0 0 2px 2px}
+.corner-br{bottom:20px;right:20px;border-width:0 2px 2px 0}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.35s ease;
+}
+.screen.show{opacity:1;pointer-events:all}
+
+/* ── HOME ── */
+.logo-wrap{text-align:center;margin-bottom:40px}
+.logo-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(64px,13vw,120px);
+  letter-spacing:8px;line-height:0.9;
+  background:linear-gradient(90deg,var(--honey),var(--neon-orange) 40%,var(--honey) 80%,var(--neon-yellow));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 3s linear infinite;
+  filter:drop-shadow(0 0 24px rgba(255,204,0,0.55));
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.logo-sub{font-size:11px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;margin-top:8px;}
+.logo-sub span{color:var(--honey);animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.home-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  margin-bottom:36px;max-width:460px;width:100%;padding:0 20px;
+}
+.feat-card{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:4px;
+  padding:12px 14px;font-size:11px;line-height:1.6;color:var(--dim);
+}
+.feat-card .feat-icon{font-size:18px;display:block;margin-bottom:4px}
+.feat-card b{color:var(--text);display:block;margin-bottom:2px;font-size:12px}
+
+.btn{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;
+  padding:14px 48px;border:2px solid var(--honey);
+  background:transparent;color:var(--honey);cursor:pointer;border-radius:2px;
+  position:relative;overflow:hidden;transition:color 0.2s,box-shadow 0.2s;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;background:var(--honey);
+  transform:translateX(-101%);transition:transform 0.2s ease;z-index:-1;
+}
+.btn:hover::before{transform:translateX(0)}
+.btn:hover{color:var(--bg);box-shadow:0 0 30px rgba(255,204,0,0.4)}
+.btn:active{transform:scale(0.97)}
+
+/* ── GAME SCREEN ── */
+#screen-game{flex-direction:row;gap:0;align-items:stretch;justify-content:center;padding:20px}
+
+.game-sidebar{
+  width:180px;flex-shrink:0;
+  display:flex;flex-direction:column;gap:14px;
+  padding:8px 0;justify-content:center;
+}
+.sidebar-panel{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:4px;padding:16px;
+}
+.sp-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
+.sp-value{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:var(--honey);line-height:1;}
+.sp-value.pink{color:var(--neon-pink)}
+.sp-value.blue{color:var(--neon-blue)}
+.sp-value.green{color:var(--neon-green)}
+
+.canvas-wrap{
+  position:relative;flex:1;
+  max-width:min(calc(100vh - 60px), calc(100vw - 400px));
+  display:flex;align-items:center;justify-content:center;
+}
+#game-canvas{
+  display:block;
+  border:1px solid rgba(255,204,0,0.15);border-radius:4px;
+  box-shadow:0 0 40px rgba(255,204,0,0.06),inset 0 0 60px rgba(0,0,0,0.5);
+  touch-action:none;
+}
+
+/* powerup chips */
+.power-strip{
+  position:absolute;bottom:-28px;left:0;right:0;
+  display:flex;gap:6px;justify-content:center;
+}
+.power-chip{
+  font-size:9px;letter-spacing:2px;padding:3px 10px;
+  border-radius:2px;border:1px solid;opacity:0;transition:opacity 0.3s;text-transform:uppercase;
+}
+.power-chip.active{opacity:1}
+.power-chip.shield{border-color:var(--neon-blue);color:var(--neon-blue)}
+.power-chip.slow{border-color:var(--neon-green);color:var(--neon-green)}
+.power-chip.tiny{border-color:var(--neon-purple);color:var(--neon-purple)}
+
+/* ── DEAD SCREEN ── */
+#screen-dead{gap:12px}
+.dead-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(50px,10vw,90px);letter-spacing:6px;
+  color:var(--neon-pink);
+  filter:drop-shadow(0 0 20px rgba(255,45,107,0.6));
+  animation:deadShake 0.4s ease;
+}
+@keyframes deadShake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}40%{transform:translateX(8px)}
+  60%{transform:translateX(-5px)}80%{transform:translateX(5px)}
+}
+.dead-stats{display:flex;gap:28px;font-size:12px;color:var(--dim);margin:8px 0 24px;flex-wrap:wrap;justify-content:center;}
+.dead-stat b{display:block;font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);letter-spacing:2px}
+.dead-buttons{display:flex;gap:12px}
+.btn-sm{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;
+  padding:10px 32px;border:1px solid;background:transparent;cursor:pointer;border-radius:2px;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.btn-sm.honey{border-color:var(--honey);color:var(--honey)}
+.btn-sm.pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn-sm:hover{filter:brightness(1.3)}
+.btn-sm:active{transform:scale(0.96)}
+
+/* ── MOBILE TAP HINT ── */
+#tap-hint{
+  position:absolute;top:58%;left:50%;
+  transform:translate(-50%,-50%);
+  font-size:13px;letter-spacing:3px;color:rgba(255,204,0,0.75);
+  pointer-events:none;opacity:0;
+  white-space:nowrap;z-index:30;text-align:center;
+  animation:none;
+}
+@keyframes hintPulse{0%,100%{opacity:0.5}50%{opacity:1}}
+#tap-hint.show{opacity:1;animation:hintPulse 1.4s ease-in-out infinite;}
+
+/* ── MOBILE ── */
+@media(max-width:700px),(pointer:coarse){
+  .game-sidebar{display:none}
+  #screen-game{padding:8px;flex-direction:column}
+  .canvas-wrap{max-width:100%;width:100%;}
+}
+
+/* score toast */
+#score-toast{
+  position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;
+  color:var(--honey);pointer-events:none;z-index:200;
+  opacity:0;transition:opacity 0.15s;
+}
+#score-toast.show{opacity:1}
+
+#particle-canvas{position:fixed;inset:0;z-index:50;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="bg-grid"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+<canvas id="particle-canvas"></canvas>
+<div id="score-toast"></div>
+
+<div id="app">
+
+  <!-- HOME -->
+  <div class="screen show" id="screen-home">
+    <div class="logo-wrap">
+      <div class="logo-line">NEON BEE</div>
+      <div class="logo-sub">// cyberpunk pollinator <span>_</span> //</div>
+    </div>
+    <div class="home-grid">
+      <div class="feat-card"><span class="feat-icon">🍯</span><b>HONEY DROPS</b>Collect them to rack up your combo score</div>
+      <div class="feat-card"><span class="feat-icon">🛡️</span><b>SHIELD</b>Blue orbs make you invincible briefly</div>
+      <div class="feat-card"><span class="feat-icon">🐌</span><b>SLOW-MO</b>Green orbs freeze the grid in time</div>
+      <div class="feat-card"><span class="feat-icon">🔮</span><b>SHRINK</b>Purple orbs make the bee tiny</div>
+      <div class="feat-card"><span class="feat-icon">⚡</span><b>SURGE PIPES</b>Pipes speed up as you score higher</div>
+      <div class="feat-card"><span class="feat-icon">💀</span><b>LASER WALLS</b>Neon barriers guard pipe gaps later on</div>
+    </div>
+    <button class="btn" onclick="startGame()">ENTER THE HIVE</button>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="screen-game">
+    <div class="game-sidebar">
+      <div class="sidebar-panel">
+        <div class="sp-label">Score</div>
+        <div class="sp-value" id="ui-score">0</div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sp-label">Best</div>
+        <div class="sp-value pink" id="ui-hi">0</div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sp-label">Combo ×<span id="ui-combo">1</span></div>
+        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px">
+          <div id="combo-bar" style="height:100%;width:0%;background:var(--honey);border-radius:2px;transition:width 0.15s"></div>
+        </div>
+      </div>
+      <div class="sidebar-panel">
+        <div class="sp-label">Pipes cleared</div>
+        <div class="sp-value green" id="ui-pipes">0</div>
+      </div>
+      <div class="sidebar-panel" style="font-size:10px;color:var(--dim);line-height:1.8">
+        <div class="sp-label">Controls</div>
+        SPACE / Click<br>Tap screen<br><br>
+        <div class="sp-label">Speed level</div>
+        <div class="sp-value" id="ui-level">1</div>
+      </div>
+    </div>
+
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="tap-hint">TAP TO FLY</div>
+      <div class="power-strip">
+        <div class="power-chip shield" id="chip-shield">SHIELD</div>
+        <div class="power-chip slow"   id="chip-slow">SLOW-MO</div>
+        <div class="power-chip tiny"   id="chip-tiny">TINY</div>
+      </div>
+    </div>
+
+    <div class="game-sidebar">
+      <div class="sidebar-panel" style="font-size:10px;color:var(--dim);line-height:1.7">
+        <div class="sp-label">Legend</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:2px;background:#ffcc00;flex-shrink:0"></div>Honey drop</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:2px;background:#00c8ff;flex-shrink:0"></div>Shield</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:2px;background:#00ffb3;flex-shrink:0"></div>Slow-mo</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:2px;background:#b44fff;flex-shrink:0"></div>Shrink</div>
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:2px;background:#ff2d6b;flex-shrink:0"></div>Laser wall</div>
+      </div>
+      <div class="sidebar-panel" style="font-size:10px;color:var(--dim)">
+        <div class="sp-label">Tips</div>
+        Honey drops extend combos.<br><br>
+        Shield survives one pipe hit.<br><br>
+        Tiny bee fits tighter gaps.
+      </div>
+    </div>
+  </div>
+
+  <!-- DEAD -->
+  <div class="screen" id="screen-dead">
+    <div class="dead-title">SPLATTED</div>
+    <div class="dead-stats">
+      <div class="dead-stat"><span>Score</span><b id="dead-score">0</b></div>
+      <div class="dead-stat"><span>Best</span><b id="dead-hi">0</b></div>
+      <div class="dead-stat"><span>Pipes</span><b id="dead-pipes">0</b></div>
+      <div class="dead-stat"><span>Best Combo</span><b id="dead-combo">×1</b></div>
+    </div>
+    <div class="dead-buttons">
+      <button class="btn-sm honey" onclick="startGame()">RESPAWN</button>
+      <button class="btn-sm pink"  onclick="goHome()">EXIT</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════
+   ROUNDRECT POLYFILL
+══════════════════════════════════ */
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    if(w<2*r)r=w/2; if(h<2*r)r=h/2;
+    this.beginPath();
+    this.moveTo(x+r,y);
+    this.arcTo(x+w,y,x+w,y+h,r);
+    this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r);
+    this.arcTo(x,y,x+w,y,r);
+    this.closePath();
+  };
+}
+
+/* ══════════════════════════════════
+   CURSOR
+══════════════════════════════════ */
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';});
+
+/* ══════════════════════════════════
+   SCREENS
+══════════════════════════════════ */
+const screens = {};
+['home','game','dead'].forEach(id=>screens[id]=document.getElementById('screen-'+id));
+function showScreen(id){Object.values(screens).forEach(s=>s.classList.remove('show'));screens[id].classList.add('show');}
+function goHome(){cancelAnimationFrame(rafId);gameRunning=false;showScreen('home');}
+
+/* ══════════════════════════════════
+   PARTICLES
+══════════════════════════════════ */
+const pCanvas = document.getElementById('particle-canvas');
+const pCtx = pCanvas.getContext('2d');
+let particles = [];
+
+function resizePC(){pCanvas.width=window.innerWidth;pCanvas.height=window.innerHeight;}
+resizePC();
+window.addEventListener('resize',resizePC);
+
+function spawnP(x,y,color,vx=0,vy=0,life=40,size=3){
+  particles.push({x,y,color,vx:vx+(Math.random()-.5)*1.5,vy:vy+(Math.random()-.5)*1.5,life,maxLife:life,size});
+}
+function updateParticles(){
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  particles=particles.filter(p=>p.life>0);
+  for(const p of particles){
+    const a=p.life/p.maxLife;
+    pCtx.save();pCtx.globalAlpha=a*.9;pCtx.fillStyle=p.color;
+    pCtx.shadowBlur=8;pCtx.shadowColor=p.color;
+    pCtx.beginPath();pCtx.arc(p.x,p.y,p.size*a,0,Math.PI*2);pCtx.fill();
+    pCtx.restore();
+    p.x+=p.vx;p.y+=p.vy;p.vx*=.93;p.vy*=.93;p.life--;
+  }
+}
+/* ══════════════════════════════════
+   GAME STATE (declared before menuLoop)
+══════════════════════════════════ */
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+const GRAVITY    = 0.38;
+const FLAP_FORCE = -7.2;
+const PIPE_W     = 52;
+let   GAP_H      = 155;
+
+let bee, beeNormal, beeTiny;
+let shieldMode, shieldTimer;
+let slowMode,   slowTimer;
+let tinyMode,   tinyTimer;
+
+let pipes, pickups;
+let score, hiScore, combo, bestCombo, pipesCleaned;
+let gameOver, gameRunning = false, waitingToStart = false;
+let rafId, lastTs, frameCount;
+let baseSpeed, pipeInterval, pipeTimer;
+let comboDecay;
+const POWERUP  = {HONEY:0, SHIELD:1, SLOW:2, TINY:3};
+const PU_COLOR = ['#ffcc00','#00c8ff','#00ffb3','#b44fff'];
+
+function menuLoop(){requestAnimationFrame(menuLoop);if(!gameRunning)updateParticles();}
+menuLoop();
+
+/* ══════════════════════════════════
+   RESIZE
+══════════════════════════════════ */
+function resizeCanvas(){
+  const wrap = document.getElementById('canvas-wrap');
+  W = Math.min(wrap.clientWidth, 480);
+  H = Math.min(wrap.clientHeight, W * 1.45, window.innerHeight - 80);
+  canvas.width  = W;
+  canvas.height = H;
+}
+
+/* ══════════════════════════════════
+   INIT
+══════════════════════════════════ */
+function startGame(){
+  resizeCanvas();
+  showScreen('game');
+  gameRunning = true;
+
+  hiScore = parseInt(localStorage.getItem('nb_hi')||'0');
+  document.getElementById('ui-hi').textContent    = hiScore;
+  document.getElementById('dead-hi').textContent  = hiScore;
+
+  beeNormal = W * 0.054;
+  beeTiny   = W * 0.032;
+
+  bee = {
+    x: W * 0.22,
+    y: H * 0.45,
+    vy: 0,
+    r: beeNormal,
+    angle: 0,
+    wingPhase: 0,
+  };
+
+  pipes       = [];
+  pickups     = [];
+  score       = 0;
+  combo       = 1;
+  bestCombo   = 1;
+  pipesCleaned= 0;
+  gameOver    = false;
+  frameCount  = 0;
+  comboDecay  = 0;
+  baseSpeed   = W * 0.0045;
+  pipeInterval= 180;
+  pipeTimer   = 120;
+  GAP_H       = H * 0.29;
+
+  shieldMode = false; shieldTimer = 0;
+  slowMode   = false; slowTimer   = 0;
+  tinyMode   = false; tinyTimer   = 0;
+  waitingToStart = true;
+
+  document.getElementById('chip-shield').classList.remove('active');
+  document.getElementById('chip-slow').classList.remove('active');
+  document.getElementById('chip-tiny').classList.remove('active');
+
+  const hint = document.getElementById('tap-hint');
+  hint.textContent = 'TOUCH ANYWHERE TO START';
+  hint.classList.add('show');
+
+  updateUI();
+  cancelAnimationFrame(rafId);
+  lastTs = performance.now();
+  rafId = requestAnimationFrame(gameLoop);
+}
+
+/* ══════════════════════════════════
+   MAIN LOOP
+══════════════════════════════════ */
+function gameLoop(ts){
+  if(gameOver){gameRunning=false;return;}
+  rafId=requestAnimationFrame(gameLoop);
+
+  const dt = Math.min(ts-lastTs, 80);
+  lastTs = ts;
+
+  updateParticles();
+  update(dt);
+  draw();
+}
+
+/* ══════════════════════════════════
+   UPDATE
+══════════════════════════════════ */
+function update(dt){
+  if(waitingToStart){
+    /* gentle hover — bob the bee without gravity */
+    bee.wingPhase+=0.35;
+    bee.y = H*0.45 + Math.sin(performance.now()/600)*8;
+    bee.angle = 0;
+    return;
+  }
+  frameCount++;
+  const slow = slowMode ? 0.42 : 1;
+
+  /* --- bee physics --- */
+  bee.vy += GRAVITY * slow;
+  bee.y  += bee.vy * slow;
+  bee.angle = Math.max(-25, Math.min(70, bee.vy * 4)); /* tilt */
+  bee.wingPhase += 0.35;
+  bee.r = tinyMode ? beeTiny : beeNormal;
+
+  /* --- floor/ceiling --- */
+  if(bee.y - bee.r < 0){bee.y=bee.r;bee.vy=0;}
+  if(bee.y + bee.r > H){die();return;}
+
+  /* --- spawn pipes --- */
+  pipeTimer--;
+  if(pipeTimer<=0){
+    spawnPipe();
+    pipeTimer = pipeInterval;
+  }
+
+  const speed = baseSpeed * slow;
+
+  /* --- update pipes --- */
+  for(let i=pipes.length-1;i>=0;i--){
+    const p=pipes[i];
+    p.x -= speed;
+
+    /* score on pass */
+    if(!p.scored && p.x + PIPE_W < bee.x){
+      p.scored=true;
+      pipesCleaned++;
+      combo=Math.min(combo+1,8);
+      bestCombo=Math.max(bestCombo,combo);
+      comboDecay=0;
+      score+=10*combo;
+      if(score>hiScore){hiScore=score;localStorage.setItem('nb_hi',hiScore);}
+      showToast('+'+10*combo+(combo>1?' ×'+combo:''));
+      updateUI();
+    }
+
+    /* pipe collision */
+    if(!shieldMode && collidesWithPipe(p)){
+      die();return;
+    }
+
+    if(p.x+PIPE_W < 0) pipes.splice(i,1);
+  }
+
+  /* --- update pickups --- */
+  for(let i=pickups.length-1;i>=0;i--){
+    const pu=pickups[i];
+    pu.x-=speed;
+    if(dist(bee.x,bee.y,pu.x,pu.y)<bee.r+pu.r){
+      collectPickup(pu);
+      pickups.splice(i,1);
+    } else if(pu.x<-20) pickups.splice(i,1);
+  }
+
+  /* --- power timers (rAF-based) --- */
+  if(shieldMode){shieldTimer--;if(shieldTimer<=0){shieldMode=false;document.getElementById('chip-shield').classList.remove('active');}}
+  if(slowMode)  {slowTimer--;  if(slowTimer<=0)  {slowMode=false;  document.getElementById('chip-slow').classList.remove('active');}}
+  if(tinyMode)  {tinyTimer--;  if(tinyTimer<=0)  {tinyMode=false;  document.getElementById('chip-tiny').classList.remove('active');}}
+
+  /* --- combo decay --- */
+  comboDecay++;
+  if(comboDecay>150){combo=Math.max(1,combo-1);comboDecay=0;updateUI();}
+  document.getElementById('combo-bar').style.width=Math.min(100,(150-comboDecay)/1.5)+'%';
+
+  /* --- scaling difficulty --- */
+  const lvl=Math.floor(pipesCleaned/5);
+  baseSpeed  = W*(0.0045+lvl*0.0006);
+  pipeInterval=Math.max(110,180-lvl*8);
+  GAP_H      = Math.max(H*0.18,H*0.29-lvl*H*0.008);
+  document.getElementById('ui-level').textContent=lvl+1;
+
+  /* --- trail particles --- */
+  if(frameCount%2===0){
+    const pc=shieldMode?'#00c8ff':slowMode?'#00ffb3':tinyMode?'#b44fff':'#ffcc00';
+    spawnP(bee.x-bee.r,bee.y,pc,-1+(Math.random()-.5),(Math.random()-.5),18,2);
+  }
+}
+
+/* ══════════════════════════════════
+   SPAWN
+══════════════════════════════════ */
+function spawnPipe(){
+  const minY = H*0.12, maxY = H - minY - GAP_H;
+  const gapTop = minY + Math.random()*(maxY-minY);
+
+  const hasLaser = pipesCleaned>=10 && Math.random()<0.3;
+  pipes.push({
+    x:W+10, gapTop, scored:false,
+    laser: hasLaser,
+    laserPhase: Math.random()*Math.PI*2,
+  });
+
+  /* maybe drop a pickup in the gap */
+  if(Math.random()<0.45){
+    const r=Math.random();
+    let type=POWERUP.HONEY;
+    if     (r>0.88) type=POWERUP.TINY;
+    else if(r>0.72) type=POWERUP.SLOW;
+    else if(r>0.58) type=POWERUP.SHIELD;
+    pickups.push({
+      x: W + PIPE_W + (W*0.18),
+      y: gapTop + GAP_H/2 + (Math.random()-.5)*GAP_H*0.3,
+      r: 8, type,
+      phase: Math.random()*Math.PI*2,
+    });
+  }
+}
+
+/* ══════════════════════════════════
+   COLLISION
+══════════════════════════════════ */
+function collidesWithPipe(p){
+  const bx=bee.x, by=bee.y, br=bee.r;
+  /* top pipe rect */
+  if(bx+br>p.x && bx-br<p.x+PIPE_W && by-br<p.gapTop) return true;
+  /* bottom pipe rect */
+  if(bx+br>p.x && bx-br<p.x+PIPE_W && by+br>p.gapTop+GAP_H) return true;
+  /* laser */
+  if(p.laser){
+    const lx=p.x+PIPE_W/2, ly=p.gapTop+GAP_H/2;
+    if(dist(bx,by,lx,ly)<br+4) return true;
+  }
+  return false;
+}
+
+function dist(x1,y1,x2,y2){return Math.sqrt((x1-x2)**2+(y1-y2)**2);}
+
+/* ══════════════════════════════════
+   PICKUPS
+══════════════════════════════════ */
+function collectPickup(pu){
+  const {x,y,type}=pu;
+  const col=PU_COLOR[type];
+  for(let i=0;i<18;i++){
+    const a=(i/18)*Math.PI*2;
+    spawnP(x,y,col,Math.cos(a)*2.5,Math.sin(a)*2.5,45,3);
+  }
+  if(type===POWERUP.HONEY){
+    combo=Math.min(combo+1,8);bestCombo=Math.max(bestCombo,combo);
+    comboDecay=0;score+=15*combo;
+    if(score>hiScore){hiScore=score;localStorage.setItem('nb_hi',hiScore);}
+    showToast('🍯 ×'+combo);
+    updateUI();
+  } else if(type===POWERUP.SHIELD){
+    shieldMode=true;shieldTimer=360;
+    document.getElementById('chip-shield').classList.add('active');
+  } else if(type===POWERUP.SLOW){
+    slowMode=true;slowTimer=300;
+    document.getElementById('chip-slow').classList.add('active');
+  } else if(type===POWERUP.TINY){
+    tinyMode=true;tinyTimer=350;
+    document.getElementById('chip-tiny').classList.add('active');
+  }
+}
+
+/* ══════════════════════════════════
+   DEATH
+══════════════════════════════════ */
+function die(){
+  if(gameOver)return;
+  gameOver=true;gameRunning=false;
+
+  let sf=14;
+  const si=setInterval(()=>{
+    const s=(Math.random()-.5)*10;
+    canvas.style.transform=`translate(${s}px,${s*.5}px)`;
+    if(--sf<=0){canvas.style.transform='';clearInterval(si);}
+  },28);
+
+  for(let i=0;i<50;i++)
+    spawnP(bee.x,bee.y,'#ff2d6b',(Math.random()-.5)*6,(Math.random()-.5)*6,65,4);
+  for(let i=0;i<30;i++)
+    spawnP(bee.x,bee.y,'#ffcc00',(Math.random()-.5)*4,(Math.random()-.5)*4,50,3);
+
+  setTimeout(()=>{
+    document.getElementById('dead-score').textContent =score;
+    document.getElementById('dead-hi').textContent    =hiScore;
+    document.getElementById('dead-pipes').textContent =pipesCleaned;
+    document.getElementById('dead-combo').textContent ='×'+bestCombo;
+    showScreen('dead');
+  },700);
+}
+
+/* ══════════════════════════════════
+   DRAW
+══════════════════════════════════ */
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#04060d';
+  ctx.fillRect(0,0,W,H);
+
+  /* grid */
+  ctx.strokeStyle='rgba(255,204,0,0.03)';ctx.lineWidth=.5;
+  for(let x=0;x<W;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  /* pipes */
+  const t=performance.now()/1000;
+  for(const p of pipes){
+    drawPipe(p,t);
+  }
+
+  /* pickups */
+  for(const pu of pickups){
+    drawPickup(pu,t);
+  }
+
+  /* bee */
+  drawBee(t);
+
+  /* score overlay */
+  ctx.font=`bold ${W*.09}px 'Bebas Neue'`;
+  ctx.fillStyle='rgba(255,204,0,0.1)';
+  ctx.textAlign='right';ctx.textBaseline='top';
+  ctx.fillText(score,W-10,8);
+
+  /* shield ring around bee */
+  if(shieldMode){
+    const pulse=Math.sin(t*6)*.15+.85;
+    ctx.save();
+    ctx.strokeStyle=`rgba(0,200,255,${pulse*.7})`;
+    ctx.lineWidth=2;ctx.shadowBlur=20;ctx.shadowColor='#00c8ff';
+    ctx.beginPath();ctx.arc(bee.x,bee.y,bee.r+6,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* ── PIPE ── */
+function drawPipe(p,t){
+  const x=p.x, gTop=p.gapTop, gBot=p.gapTop+GAP_H;
+  const pw=PIPE_W;
+
+  /* pipe body gradient-like effect via stripes */
+  ctx.save();
+  /* top pipe */
+  ctx.fillStyle='#0d1a24';
+  ctx.fillRect(x,0,pw,gTop);
+  /* border glow */
+  ctx.strokeStyle='rgba(255,204,0,0.35)';ctx.lineWidth=1.5;
+  ctx.shadowBlur=12;ctx.shadowColor='rgba(255,204,0,0.2)';
+  ctx.strokeRect(x+.75,0,pw-1.5,gTop);
+  /* pipe cap */
+  ctx.fillStyle='#112233';
+  ctx.fillRect(x-5,gTop-18,pw+10,18);
+  ctx.strokeRect(x-4.25,gTop-17.25,pw+8.5,16.5);
+
+  /* bottom pipe */
+  ctx.shadowBlur=12;
+  ctx.fillStyle='#0d1a24';
+  ctx.fillRect(x,gBot,pw,H-gBot);
+  ctx.strokeRect(x+.75,gBot,pw-1.5,H-gBot);
+  /* cap */
+  ctx.fillStyle='#112233';
+  ctx.fillRect(x-5,gBot,pw+10,18);
+  ctx.strokeRect(x-4.25,gBot+.75,pw+8.5,16.5);
+  ctx.shadowBlur=0;
+
+  /* inner highlight strip */
+  ctx.fillStyle='rgba(255,204,0,0.04)';
+  ctx.fillRect(x+6,0,6,gTop);
+  ctx.fillRect(x+6,gBot,6,H-gBot);
+
+  /* laser */
+  if(p.laser){
+    const lx=x+pw/2, ly=gTop+GAP_H/2;
+    const pulse=Math.sin(t*5+p.laserPhase)*.3+.7;
+    ctx.save();
+    /* horizontal beam */
+    const grad=ctx.createLinearGradient(x,ly,x+pw,ly);
+    grad.addColorStop(0,'rgba(255,45,107,0)');
+    grad.addColorStop(.5,`rgba(255,45,107,${pulse})`);
+    grad.addColorStop(1,'rgba(255,45,107,0)');
+    ctx.fillStyle=grad;ctx.fillRect(x,ly-3,pw,6);
+    /* core dot */
+    ctx.fillStyle=`rgba(255,45,107,${pulse})`;
+    ctx.shadowBlur=18;ctx.shadowColor='#ff2d6b';
+    ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/* ── PICKUP ── */
+function drawPickup(pu,t){
+  const {x,y,r,type,phase}=pu;
+  const col=PU_COLOR[type];
+  const pulse=Math.sin(t*4+phase)*.15+.85;
+  ctx.save();
+  ctx.translate(x,y);ctx.scale(pulse,pulse);
+  ctx.shadowBlur=18;ctx.shadowColor=col;ctx.fillStyle=col;
+
+  if(type===POWERUP.HONEY){
+    /* hexagon */
+    ctx.beginPath();
+    for(let i=0;i<6;i++){const a=i*Math.PI/3-Math.PI/6;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}
+    ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.35)';
+    ctx.beginPath();
+    for(let i=0;i<6;i++){const a=i*Math.PI/3-Math.PI/6;ctx.lineTo(Math.cos(a)*(r*.5),Math.sin(a)*(r*.5));}
+    ctx.closePath();ctx.fill();
+  } else if(type===POWERUP.SHIELD){
+    /* pentagon shield shape */
+    ctx.beginPath();
+    ctx.moveTo(0,-r);ctx.lineTo(r*.85,r*.3);ctx.lineTo(r*.5,r);ctx.lineTo(-r*.5,r);ctx.lineTo(-r*.85,r*.3);
+    ctx.closePath();ctx.fill();
+  } else if(type===POWERUP.SLOW){
+    /* circle with inner ring */
+    ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(0,255,180,0.5)';
+    ctx.beginPath();ctx.arc(0,0,r*1.3,0,Math.PI*2);ctx.fill();
+  } else {
+    /* diamond (tiny) */
+    ctx.beginPath();
+    ctx.moveTo(0,-r);ctx.lineTo(r*.7,0);ctx.lineTo(0,r);ctx.lineTo(-r*.7,0);
+    ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ── BEE ── */
+function drawBee(t){
+  const {x,y,r,angle,wingPhase}=bee;
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle*Math.PI/180);
+
+  const col=shieldMode?'#00c8ff':slowMode?'#00ffb3':tinyMode?'#b44fff':'#ffcc00';
+  const stripCol=shieldMode?'rgba(0,150,200,0.6)':slowMode?'rgba(0,180,100,0.6)':tinyMode?'rgba(140,40,220,0.6)':'rgba(20,20,20,0.55)';
+
+  /* wings */
+  const wFlap=Math.sin(wingPhase)*r*.9;
+  ctx.save();
+  ctx.globalAlpha=0.65;
+  ctx.fillStyle='rgba(0,255,180,0.3)';
+  ctx.shadowBlur=8;ctx.shadowColor='#00ffb3';
+  /* upper wings */
+  ctx.beginPath();ctx.ellipse(-r*.15,-r*.55,r*.75,r*.45,-.4,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse( r*.15,-r*.55,r*.75,r*.45, .4,0,Math.PI*2);ctx.fill();
+  /* lower wings (smaller) */
+  ctx.fillStyle='rgba(0,200,255,0.2)';
+  ctx.beginPath();ctx.ellipse(-r*.2,-r*.1,r*.4,r*.28,-.6,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse( r*.2,-r*.1,r*.4,r*.28, .6,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+
+  /* body */
+  ctx.shadowBlur=20;ctx.shadowColor=col;
+  ctx.fillStyle=col;
+  ctx.beginPath();ctx.ellipse(0,0,r*.62,r,0,0,Math.PI*2);ctx.fill();
+
+  /* stripes */
+  ctx.fillStyle=stripCol;
+  for(let i=-1;i<=1;i++){
+    ctx.fillRect(-r*.55,i*r*.32-r*.12,r*1.1,r*.2);
+  }
+  /* clip stripes to bee body */
+
+  /* head */
+  ctx.shadowBlur=10;ctx.shadowColor=col;
+  ctx.fillStyle=col;
+  ctx.beginPath();ctx.arc(0,-r*.78,r*.38,0,Math.PI*2);ctx.fill();
+
+  /* eyes */
+  ctx.shadowBlur=0;ctx.fillStyle='#04060d';
+  ctx.beginPath();ctx.arc(-r*.14,-r*.82,r*.1,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc( r*.14,-r*.82,r*.1,0,Math.PI*2);ctx.fill();
+
+  /* antennae */
+  ctx.strokeStyle=col;ctx.lineWidth=r*.08;ctx.lineCap='round';
+  ctx.shadowBlur=6;ctx.shadowColor=col;
+  ctx.beginPath();ctx.moveTo(-r*.12,-r*1.05);ctx.lineTo(-r*.35,-r*1.38);ctx.stroke();
+  ctx.beginPath();ctx.moveTo( r*.12,-r*1.05);ctx.lineTo( r*.35,-r*1.38);ctx.stroke();
+  /* antenna tips */
+  ctx.fillStyle=col;
+  ctx.beginPath();ctx.arc(-r*.35,-r*1.38,r*.09,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc( r*.35,-r*1.38,r*.09,0,Math.PI*2);ctx.fill();
+
+  /* stinger */
+  ctx.fillStyle=col;ctx.shadowBlur=8;
+  ctx.beginPath();ctx.moveTo(-r*.12,r*.85);ctx.lineTo(r*.12,r*.85);ctx.lineTo(0,r*1.18);ctx.closePath();ctx.fill();
+
+  ctx.restore();
+}
+
+/* ══════════════════════════════════
+   UI
+══════════════════════════════════ */
+function updateUI(){
+  document.getElementById('ui-score').textContent =score;
+  document.getElementById('ui-hi').textContent    =hiScore;
+  document.getElementById('ui-combo').textContent =combo;
+  document.getElementById('ui-pipes').textContent =pipesCleaned;
+}
+
+let toastTimeout;
+function showToast(msg){
+  const el=document.getElementById('score-toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout=setTimeout(()=>el.classList.remove('show'),700);
+}
+
+/* ══════════════════════════════════
+   CONTROLS
+══════════════════════════════════ */
+function flap(){
+  if(!gameRunning||gameOver)return;
+  if(waitingToStart){
+    waitingToStart=false;
+    document.getElementById('tap-hint').classList.remove('show');
+    lastTs=performance.now();
+  }
+  bee.vy=FLAP_FORCE;
+  /* wing burst */
+  spawnP(bee.x,bee.y+bee.r,'rgba(0,255,180,0.8)',-1,1.5,14,2.5);
+  spawnP(bee.x,bee.y+bee.r,'rgba(0,255,180,0.8)', 1,1.5,14,2.5);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.key===' '){e.preventDefault();flap();}
+  if((e.key==='ArrowUp'||e.key==='w'||e.key==='W')){e.preventDefault();flap();}
+});
+
+/* Pointer / touch on canvas */
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();flap();},{passive:false});
+
+/* Global tap (for mobile outside canvas area) */
+document.addEventListener('touchstart',e=>{
+  if(e.target===canvas)return;
+  flap();
+},{passive:true});
+
+window.addEventListener('resize',()=>{
+  if(screens.game.classList.contains('show')) resizeCanvas();
+  resizePC();
+});
+</script>
+</body>
+</html>

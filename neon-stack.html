@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NEON STACK</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;
+  --grid-line:rgba(0,255,180,0.04);
+  --neon-green:#00ffb3;
+  --neon-pink:#ff2d6b;
+  --neon-blue:#00c8ff;
+  --neon-orange:#ff8c00;
+  --neon-yellow:#f5ff00;
+  --neon-purple:#b44fff;
+  --text:#c8f5e8;
+  --dim:#3a6b58;
+  --panel:rgba(0,255,180,0.04);
+  --panel-border:rgba(0,255,180,0.12);
+}
+
+html,body{
+  width:100%;height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  overflow:hidden;
+  cursor:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+}
+
+#cursor{
+  position:fixed;width:8px;height:8px;
+  background:var(--neon-green);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 10px var(--neon-green),0 0 20px var(--neon-green);
+}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:100;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none;
+}
+
+#bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 30s linear infinite;
+}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:40px 40px}}
+
+.corner{position:fixed;width:80px;height:80px;border-color:var(--neon-green);border-style:solid;opacity:0.3;z-index:1;}
+.corner-tl{top:20px;left:20px;border-width:2px 0 0 2px}
+.corner-tr{top:20px;right:20px;border-width:2px 2px 0 0}
+.corner-bl{bottom:20px;left:20px;border-width:0 0 2px 2px}
+.corner-br{bottom:20px;right:20px;border-width:0 2px 2px 0}
+
+canvas#particle-canvas{position:fixed;inset:0;z-index:50;pointer-events:none;}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.35s ease;
+  padding:20px;
+}
+.screen.show{opacity:1;pointer-events:all}
+
+/* ── LOGO ── */
+.logo-wrap{text-align:center;margin-bottom:36px}
+.logo-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(64px,13vw,120px);
+  letter-spacing:8px;line-height:0.9;
+  background:linear-gradient(90deg,var(--neon-green),var(--neon-blue) 50%,var(--neon-green));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+  filter:drop-shadow(0 0 20px rgba(0,255,180,0.5));
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.logo-sub{font-size:11px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;margin-top:8px;}
+.logo-sub span{color:var(--neon-green);animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;
+  padding:14px 48px;border:2px solid var(--neon-green);
+  background:transparent;color:var(--neon-green);cursor:pointer;border-radius:2px;
+  position:relative;overflow:hidden;transition:color 0.2s,box-shadow 0.2s;
+  display:block;width:100%;max-width:320px;margin:0 auto;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;background:var(--neon-green);
+  transform:translateX(-101%);transition:transform 0.2s ease;z-index:-1;
+}
+.btn:hover::before{transform:translateX(0)}
+.btn:hover{color:var(--bg);box-shadow:0 0 30px rgba(0,255,180,0.4)}
+.btn:active{transform:scale(0.97)}
+.btn.pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn.pink::before{background:var(--neon-pink)}
+.btn.pink:hover{color:var(--bg);box-shadow:0 0 30px rgba(255,45,107,0.4)}
+.btn.blue{border-color:var(--neon-blue);color:var(--neon-blue)}
+.btn.blue::before{background:var(--neon-blue)}
+.btn.blue:hover{color:var(--bg);box-shadow:0 0 30px rgba(0,200,255,0.4)}
+.btn.orange{border-color:var(--neon-orange);color:var(--neon-orange)}
+.btn.orange::before{background:var(--neon-orange)}
+.btn.orange:hover{color:var(--bg);box-shadow:0 0 30px rgba(255,140,0,0.4)}
+
+.btn-sm{
+  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;
+  padding:8px 24px;border:1px solid;background:transparent;cursor:pointer;border-radius:2px;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.btn-sm.green{border-color:var(--neon-green);color:var(--neon-green)}
+.btn-sm.pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn-sm.blue{border-color:var(--neon-blue);color:var(--neon-blue)}
+.btn-sm:hover{filter:brightness(1.4)}
+.btn-sm:active{transform:scale(0.96)}
+.btn-gap{display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px;align-items:center;}
+
+/* ── DIFFICULTY CARDS ── */
+.mode-cards{display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;}
+.mode-card{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;
+  padding:22px 26px;cursor:pointer;text-align:center;
+  transition:border-color 0.2s,box-shadow 0.2s;min-width:130px;
+}
+.mode-card:hover{border-color:var(--neon-green);box-shadow:0 0 24px rgba(0,255,180,0.12)}
+.mode-card.selected{border-color:var(--neon-green);box-shadow:0 0 24px rgba(0,255,180,0.2);}
+.mode-card:active{transform:scale(0.97)}
+.mode-icon{font-size:32px;display:block;margin-bottom:10px}
+.mode-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--neon-green);}
+.mode-desc{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;}
+
+/* ── GAME SCREEN ── */
+#screen-game{
+  flex-direction:row;
+  align-items:flex-start;
+  justify-content:center;
+  padding:16px;
+  gap:20px;
+}
+
+/* left panel */
+.side-panel{
+  display:flex;flex-direction:column;gap:12px;
+  width:110px;flex-shrink:0;padding-top:8px;
+}
+.stat-box{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:4px;padding:10px 8px;text-align:center;
+}
+.stat-label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;line-height:1;color:var(--neon-green);}
+.stat-val.hi{color:var(--neon-yellow);}
+.stat-val.lvl{color:var(--neon-blue);}
+
+.combo-box{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:4px;padding:8px;text-align:center;
+  opacity:0;transition:opacity 0.3s;
+}
+.combo-box.show{opacity:1;}
+.combo-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--neon-orange);
+  text-shadow:0 0 12px rgba(255,140,0,0.7);}
+
+/* ── STACK CANVAS ── */
+.canvas-wrap{
+  position:relative;
+  flex:0 0 auto;
+}
+#stack-canvas{
+  display:block;
+  border:1px solid var(--panel-border);
+  border-radius:4px;
+}
+
+/* tap hint */
+.tap-hint{
+  position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);
+  font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;
+  white-space:nowrap;
+  animation:hintPulse 2s ease-in-out infinite;
+}
+@keyframes hintPulse{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* ── OVERLAY on canvas ── */
+.canvas-overlay{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.over-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(28px,5vw,48px);
+  letter-spacing:5px;
+  opacity:0;transform:scale(0.6);
+  transition:opacity 0.4s ease,transform 0.4s cubic-bezier(0.175,0.885,0.32,1.4);
+  text-align:center;
+}
+.over-title.show{opacity:1;transform:scale(1);}
+.over-title.win{color:var(--neon-yellow);text-shadow:0 0 30px rgba(245,255,0,0.6);}
+.over-title.lose{color:var(--neon-pink);text-shadow:0 0 30px rgba(255,45,107,0.6);}
+
+/* right panel */
+.right-panel{
+  display:flex;flex-direction:column;gap:12px;
+  width:110px;flex-shrink:0;padding-top:8px;
+}
+
+.action-btns{display:flex;flex-direction:column;gap:8px;}
+
+/* ── RESULT SCREEN ── */
+#screen-result{gap:0;}
+.result-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(48px,10vw,90px);
+  letter-spacing:6px;text-align:center;margin-bottom:8px;
+}
+.result-logo.win{
+  background:linear-gradient(90deg,var(--neon-yellow),var(--neon-orange));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 20px rgba(245,255,0,0.5));
+}
+.result-logo.lose{
+  color:var(--neon-pink);
+  text-shadow:0 0 30px rgba(255,45,107,0.5);
+}
+.result-sub{font-size:11px;letter-spacing:4px;color:var(--dim);text-align:center;margin-bottom:28px;}
+.result-stats{
+  display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;
+}
+.result-stat{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:4px;padding:14px 18px;text-align:center;min-width:90px;
+}
+.rs-label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
+.rs-val{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1.1;}
+.rs-val.g{color:var(--neon-green);}
+.rs-val.y{color:var(--neon-yellow);}
+.rs-val.b{color:var(--neon-blue);}
+
+/* ── HOW TO PLAY ── */
+.how-card{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;
+  padding:22px 26px;width:100%;max-width:400px;margin-bottom:24px;
+}
+.how-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;color:var(--neon-green);margin-bottom:14px;}
+.how-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:11px;letter-spacing:1px;color:var(--text);line-height:1.6;}
+.how-num{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--neon-green);flex-shrink:0;line-height:1.2;}
+
+@media(max-width:560px){
+  #screen-game{flex-direction:column;align-items:center;padding:10px 8px;gap:10px;}
+  .side-panel,.right-panel{flex-direction:row;width:100%;gap:8px;}
+  .stat-box,.combo-box{flex:1;}
+  .action-btns{flex-direction:row;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="bg-grid"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+<canvas id="particle-canvas"></canvas>
+
+<!-- ══ HOME ══ -->
+<div class="screen show" id="screen-home">
+  <div class="logo-wrap">
+    <div class="logo-line">NEON<br>STACK</div>
+    <div class="logo-sub">// precision stacking <span>_</span> //</div>
+  </div>
+  <div class="btn-gap">
+    <button class="btn"        onclick="showScreen('diff')">PLAY</button>
+    <button class="btn blue"   onclick="showScreen('rules')">HOW TO PLAY</button>
+  </div>
+</div>
+
+<!-- ══ RULES ══ -->
+<div class="screen" id="screen-rules">
+  <div class="logo-wrap" style="margin-bottom:20px">
+    <div class="logo-line" style="font-size:clamp(40px,8vw,72px)">HOW TO<br>PLAY</div>
+  </div>
+  <div class="how-card">
+    <div class="how-title">⬛ STACK RULES</div>
+    <div class="how-row"><span class="how-num">1</span><span>A block slides left and right at the top of the screen. <b>Tap / Click / Space</b> to drop it.</span></div>
+    <div class="how-row"><span class="how-num">2</span><span>Only the part that lands on the previous block stays. The overhanging part is <span style="color:var(--neon-pink)">cut off</span>.</span></div>
+    <div class="how-row"><span class="how-num">3</span><span>Each perfect drop (zero overhang) earns a <span style="color:var(--neon-orange)">PERFECT BONUS</span> and the block grows wider.</span></div>
+    <div class="how-row"><span class="how-num">4</span><span>If you miss the stack entirely, it's <span style="color:var(--neon-pink)">GAME OVER</span>.</span></div>
+    <div class="how-row"><span class="how-num">5</span><span>Stack higher to level up — each level speeds up the moving block. Survive as long as you can!</span></div>
+  </div>
+  <button class="btn" onclick="showScreen('home')">BACK</button>
+</div>
+
+<!-- ══ DIFFICULTY ══ -->
+<div class="screen" id="screen-diff">
+  <div class="logo-wrap" style="margin-bottom:24px">
+    <div class="logo-line" style="font-size:clamp(40px,8vw,80px)">DIFFICULTY</div>
+  </div>
+  <div class="mode-cards">
+    <div class="mode-card" id="diff-easy" onclick="selectDiff('easy')">
+      <span class="mode-icon">🟢</span>
+      <div class="mode-title">EASY</div>
+      <div class="mode-desc">SLOW BLOCKS</div>
+    </div>
+    <div class="mode-card" id="diff-medium" onclick="selectDiff('medium')">
+      <span class="mode-icon">🟡</span>
+      <div class="mode-title">MEDIUM</div>
+      <div class="mode-desc">NORMAL SPEED</div>
+    </div>
+    <div class="mode-card" id="diff-hard" onclick="selectDiff('hard')">
+      <span class="mode-icon">🔴</span>
+      <div class="mode-title">HARD</div>
+      <div class="mode-desc">FAST & FURIOUS</div>
+    </div>
+  </div>
+  <button class="btn pink" onclick="showScreen('home')">BACK</button>
+</div>
+
+<!-- ══ GAME ══ -->
+<div class="screen" id="screen-game">
+  <div class="side-panel">
+    <div class="stat-box">
+      <div class="stat-label">SCORE</div>
+      <div class="stat-val" id="ui-score">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">BEST</div>
+      <div class="stat-val hi" id="ui-best">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">LEVEL</div>
+      <div class="stat-val lvl" id="ui-level">1</div>
+    </div>
+    <div class="combo-box" id="combo-box">
+      <div class="stat-label">COMBO</div>
+      <div class="combo-val" id="ui-combo">x1</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="stack-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="over-title" id="over-title"></div>
+    </div>
+    <div class="tap-hint" id="tap-hint">TAP / SPACE TO DROP</div>
+  </div>
+
+  <div class="right-panel">
+    <div class="stat-box">
+      <div class="stat-label">HEIGHT</div>
+      <div class="stat-val" id="ui-height">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">PERFECT</div>
+      <div class="stat-val" style="color:var(--neon-orange)" id="ui-perfect">0</div>
+    </div>
+    <div class="action-btns">
+      <button class="btn-sm pink" onclick="endGame(true)">QUIT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div class="screen" id="screen-result">
+  <div class="result-logo" id="result-logo">GAME OVER</div>
+  <div class="result-sub" id="result-sub">YOUR STACK COLLAPSED</div>
+  <div class="result-stats">
+    <div class="result-stat">
+      <div class="rs-label">SCORE</div>
+      <div class="rs-val g" id="rs-score">0</div>
+    </div>
+    <div class="result-stat">
+      <div class="rs-label">BEST</div>
+      <div class="rs-val y" id="rs-best">0</div>
+    </div>
+    <div class="result-stat">
+      <div class="rs-label">LEVEL</div>
+      <div class="rs-val b" id="rs-level">1</div>
+    </div>
+    <div class="result-stat">
+      <div class="rs-label">HEIGHT</div>
+      <div class="rs-val g" id="rs-height">0</div>
+    </div>
+    <div class="result-stat">
+      <div class="rs-label">PERFECT</div>
+      <div class="rs-val" style="color:var(--neon-orange)" id="rs-perfect">0</div>
+    </div>
+  </div>
+  <div class="btn-gap">
+    <button class="btn"        onclick="startGame()">PLAY AGAIN</button>
+    <button class="btn blue"   onclick="showScreen('diff')">CHANGE DIFF</button>
+    <button class="btn pink"   onclick="showScreen('home')">MAIN MENU</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   CURSOR
+══════════════════════════════════════ */
+const curEl = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  curEl.style.left = e.clientX + 'px';
+  curEl.style.top  = e.clientY + 'px';
+});
+
+/* ══════════════════════════════════════
+   PARTICLE CANVAS
+══════════════════════════════════════ */
+const pCanvas = document.getElementById('particle-canvas');
+const pCtx    = pCanvas.getContext('2d');
+let particles = [];
+
+function resizePC() { pCanvas.width = innerWidth; pCanvas.height = innerHeight; }
+resizePC();
+window.addEventListener('resize', resizePC);
+
+function spawnP(x, y, color, count=18, speed=2.5, life=55, size=3) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const v = Math.random() * speed + 0.5;
+    particles.push({ x, y, color, vx: Math.cos(a)*v, vy: Math.sin(a)*v, life, maxLife: life, size: Math.random()*size+1 });
+  }
+}
+
+function updateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  particles = particles.filter(p => p.life > 0);
+  for (const p of particles) {
+    const a = p.life / p.maxLife;
+    pCtx.save();
+    pCtx.globalAlpha   = a * 0.9;
+    pCtx.fillStyle     = p.color;
+    pCtx.shadowBlur    = 10;
+    pCtx.shadowColor   = p.color;
+    pCtx.beginPath();
+    pCtx.arc(p.x, p.y, p.size * a, 0, Math.PI*2);
+    pCtx.fill();
+    pCtx.restore();
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.93; p.vy *= 0.93;
+    p.life--;
+  }
+}
+(function loop() { requestAnimationFrame(loop); updateParticles(); })();
+
+/* ══════════════════════════════════════
+   SCREEN MANAGEMENT
+══════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById('screen-' + id).classList.add('show');
+}
+
+/* ══════════════════════════════════════
+   DIFFICULTY
+══════════════════════════════════════ */
+const DIFF = {
+  easy:   { baseSpeed: 1.4, speedInc: 0.06 },
+  medium: { baseSpeed: 2.2, speedInc: 0.10 },
+  hard:   { baseSpeed: 3.2, speedInc: 0.15 },
+};
+let difficulty = 'medium';
+
+function selectDiff(d) {
+  difficulty = d;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('diff-' + d).classList.add('selected');
+  startGame();
+}
+
+/* ══════════════════════════════════════
+   GAME CONSTANTS & STATE
+══════════════════════════════════════ */
+const C        = document.getElementById('stack-canvas');
+const ctx      = C.getContext('2d');
+const ROWS     = 14;          // visible rows
+const BASE_W   = 200;         // starting block width (logical)
+let   CELL_H   = 28;          // logical cell height — recalculated on resize
+let   CANVAS_W = 220;
+let   CANVAS_H = ROWS * CELL_H;
+
+// colour palette per level (cycles)
+const PALETTES = [
+  ['#00ffb3','#00c8ff'],
+  ['#b44fff','#ff2d6b'],
+  ['#f5ff00','#ff8c00'],
+  ['#00c8ff','#b44fff'],
+  ['#ff2d6b','#f5ff00'],
+  ['#ff8c00','#00ffb3'],
+];
+
+let score, best, level, height, perfects, combo;
+let blocks;       // array of {x, w} from bottom
+let mover;        // {x, w, dir, speed}
+let gameRunning;
+let animId;
+let lastTime;
+let overTitle;
+let diffCfg;
+let bestScore = 0;
+
+/* ══════════════════════════════════════
+   CANVAS SIZING
+══════════════════════════════════════ */
+function sizeCanvas() {
+  const wrap    = document.getElementById('canvas-wrap');
+  const maxH    = window.innerHeight - 160;
+  const maxW    = Math.min(window.innerWidth - 260, 280);
+  CELL_H        = Math.max(20, Math.floor(Math.min(maxH / ROWS, 34)));
+  CANVAS_H      = ROWS * CELL_H;
+  CANVAS_W      = Math.max(180, Math.min(maxW, 260));
+  C.width       = CANVAS_W;
+  C.height      = CANVAS_H;
+  C.style.width  = CANVAS_W + 'px';
+  C.style.height = CANVAS_H + 'px';
+  wrap.style.width  = CANVAS_W + 'px';
+  wrap.style.height = CANVAS_H + 'px';
+}
+
+/* ══════════════════════════════════════
+   START GAME
+══════════════════════════════════════ */
+function startGame() {
+  showScreen('game');
+  if (animId) cancelAnimationFrame(animId);
+
+  sizeCanvas();
+  diffCfg  = DIFF[difficulty];
+  score    = 0; level = 1; height = 0; perfects = 0; combo = 0;
+  gameRunning = true;
+  overTitle   = document.getElementById('over-title');
+  overTitle.classList.remove('show');
+  document.getElementById('tap-hint').style.opacity = '1';
+  document.getElementById('combo-box').classList.remove('show');
+
+  // Base block centered
+  blocks = [{ x: (CANVAS_W - BASE_W) / 2, w: BASE_W }];
+
+  spawnMover();
+  updateUI();
+  lastTime = null;
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function spawnMover() {
+  const top  = blocks[blocks.length - 1];
+  const spd  = diffCfg.baseSpeed + level * diffCfg.speedInc;
+  mover = { x: 0, w: top.w, dir: 1, speed: spd };
+}
+
+/* ══════════════════════════════════════
+   GAME LOOP
+══════════════════════════════════════ */
+function gameLoop(ts) {
+  if (!gameRunning) return;
+  if (!lastTime) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 16.67, 3); // normalise to 60fps
+  lastTime = ts;
+
+  mover.x += mover.dir * mover.speed * dt;
+  if (mover.x + mover.w >= CANVAS_W) { mover.x = CANVAS_W - mover.w; mover.dir = -1; }
+  if (mover.x <= 0) { mover.x = 0; mover.dir = 1; }
+
+  draw();
+  animId = requestAnimationFrame(gameLoop);
+}
+
+/* ══════════════════════════════════════
+   DRAW
+══════════════════════════════════════ */
+function draw() {
+  ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+  const pal    = PALETTES[(level - 1) % PALETTES.length];
+  const visibleStart = Math.max(0, blocks.length - ROWS);
+  const visibleBlocks = blocks.slice(visibleStart);
+
+  // Draw stacked blocks (bottom → top, displayed top → bottom in canvas)
+  for (let i = 0; i < visibleBlocks.length; i++) {
+    const b   = visibleBlocks[i];
+    const row = ROWS - visibleBlocks.length + i;
+    const y   = row * CELL_H;
+    drawBlock(b.x, y, b.w, CELL_H, pal[0], pal[1], i / visibleBlocks.length);
+  }
+
+  // Moving block at top
+  if (gameRunning) {
+    const moverRow = ROWS - visibleBlocks.length - 1;
+    const my = moverRow * CELL_H;
+    if (my >= 0) {
+      drawBlock(mover.x, my, mover.w, CELL_H, pal[1], pal[0], 1);
+    } else {
+      // mover off top of visible area — still draw at row 0
+      drawBlock(mover.x, 0, mover.w, CELL_H, pal[1], pal[0], 1);
+    }
+  }
+}
+
+function drawBlock(x, y, w, h, col1, col2, brightness) {
+  const grad = ctx.createLinearGradient(x, y, x + w, y + h);
+  grad.addColorStop(0, col1);
+  grad.addColorStop(1, col2);
+
+  ctx.save();
+  ctx.shadowBlur  = 12;
+  ctx.shadowColor = col1;
+  ctx.globalAlpha = 0.3 + brightness * 0.7;
+  ctx.fillStyle   = grad;
+  ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+
+  // top edge glow
+  ctx.globalAlpha = 0.85;
+  ctx.strokeStyle = col1;
+  ctx.lineWidth   = 1.5;
+  ctx.shadowBlur  = 8;
+  ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+
+  // inner highlight
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle   = '#ffffff';
+  ctx.fillRect(x + 2, y + 2, w - 4, 3);
+
+  ctx.restore();
+}
+
+/* ══════════════════════════════════════
+   DROP BLOCK
+══════════════════════════════════════ */
+function dropBlock() {
+  if (!gameRunning) return;
+
+  const top     = blocks[blocks.length - 1];
+  const overlapL = Math.max(mover.x, top.x);
+  const overlapR = Math.min(mover.x + mover.w, top.x + top.w);
+  const overlap  = overlapR - overlapL;
+
+  if (overlap <= 0) {
+    // Missed entirely
+    flashMiss();
+    endGame(false);
+    return;
+  }
+
+  const isPerfect = Math.abs(mover.w - overlap) <= 2;
+  let newW, newX;
+
+  if (isPerfect) {
+    newW = Math.min(top.w + 4, CANVAS_W - 10); // bonus width
+    newX = top.x - (newW - top.w) / 2;
+    newX = Math.max(0, Math.min(CANVAS_W - newW, newX));
+    perfects++;
+    combo++;
+    showCombo(combo);
+    flashPerfect();
+    score += 150 * combo;
+  } else {
+    newW = overlap;
+    newX = overlapL;
+    combo = 0;
+    document.getElementById('combo-box').classList.remove('show');
+    // drop the cut piece as particles
+    dropParticles(overlapL, overlapR, newW, mover.w);
+    score += 100;
+  }
+
+  blocks.push({ x: newX, w: newW });
+  height++;
+
+  // level up every 5 blocks
+  if (height % 5 === 0) {
+    level++;
+    showLevelUp();
+  }
+
+  score += level * 10;
+  if (score > bestScore) bestScore = score;
+
+  spawnMover();
+  updateUI();
+  draw();
+}
+
+function dropParticles(overlapL, overlapR, newW, moverW) {
+  const rect = C.getBoundingClientRect();
+  const ratio = rect.width / CANVAS_W;
+  const visRows = Math.min(blocks.length, ROWS);
+  const moverRow = ROWS - visRows - 1;
+  const my = Math.max(0, moverRow) * CELL_H;
+
+  // left cut
+  if (mover.x < overlapL) {
+    const cx = rect.left + mover.x * ratio;
+    const cy = rect.top  + my * ratio;
+    spawnP(cx, cy, '#ff2d6b', 10, 3, 40, 3);
+  }
+  // right cut
+  if (mover.x + moverW > overlapR) {
+    const cx = rect.left + (overlapR) * ratio;
+    const cy = rect.top  + my * ratio;
+    spawnP(cx, cy, '#ff2d6b', 10, 3, 40, 3);
+  }
+}
+
+/* ══════════════════════════════════════
+   FLASH EFFECTS
+══════════════════════════════════════ */
+function flashPerfect() {
+  const el = document.getElementById('over-title');
+  el.textContent = '✦ PERFECT ✦';
+  el.className = 'over-title win show';
+  const rect = C.getBoundingClientRect();
+  spawnP(rect.left + rect.width/2, rect.top + 60, '#f5ff00', 28, 4, 60, 4);
+  setTimeout(() => el.classList.remove('show'), 900);
+}
+
+function flashMiss() {
+  const rect = C.getBoundingClientRect();
+  spawnP(rect.left + rect.width/2, rect.top + rect.height/2, '#ff2d6b', 35, 5, 70, 5);
+}
+
+function showLevelUp() {
+  const el = document.getElementById('over-title');
+  el.textContent = '▲ LEVEL ' + level;
+  el.className = 'over-title win show';
+  const rect = C.getBoundingClientRect();
+  spawnP(rect.left + rect.width/2, rect.top + rect.height/2, '#00c8ff', 22, 4, 55, 4);
+  setTimeout(() => el.classList.remove('show'), 1000);
+}
+
+function showCombo(n) {
+  if (n < 2) return;
+  const box = document.getElementById('combo-box');
+  document.getElementById('ui-combo').textContent = 'x' + n;
+  box.classList.add('show');
+}
+
+/* ══════════════════════════════════════
+   UI UPDATE
+══════════════════════════════════════ */
+function updateUI() {
+  document.getElementById('ui-score').textContent   = score;
+  document.getElementById('ui-best').textContent    = bestScore;
+  document.getElementById('ui-level').textContent   = level;
+  document.getElementById('ui-height').textContent  = height;
+  document.getElementById('ui-perfect').textContent = perfects;
+}
+
+/* ══════════════════════════════════════
+   END GAME
+══════════════════════════════════════ */
+function endGame(quit) {
+  gameRunning = false;
+  if (animId) { cancelAnimationFrame(animId); animId = null; }
+
+  if (score > bestScore) bestScore = score;
+
+  const isWin = !quit && height >= 30; // 30 = "survived" goal
+
+  setTimeout(() => {
+    document.getElementById('result-logo').textContent = quit ? 'QUIT' : (height >= 30 ? 'YOU WIN!' : 'GAME OVER');
+    document.getElementById('result-logo').className   = 'result-logo ' + (height >= 30 && !quit ? 'win' : 'lose');
+    document.getElementById('result-sub').textContent  =
+      quit ? 'STACK ABANDONED' :
+      height >= 30 ? 'TOWER COMPLETE!' : 'YOUR STACK COLLAPSED';
+    document.getElementById('rs-score').textContent   = score;
+    document.getElementById('rs-best').textContent    = bestScore;
+    document.getElementById('rs-level').textContent   = level;
+    document.getElementById('rs-height').textContent  = height;
+    document.getElementById('rs-perfect').textContent = perfects;
+    showScreen('result');
+  }, quit ? 0 : 600);
+}
+
+/* ══════════════════════════════════════
+   INPUT
+══════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if ((e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'Enter') &&
+      document.getElementById('screen-game').classList.contains('show')) {
+    e.preventDefault();
+    dropBlock();
+    document.getElementById('tap-hint').style.opacity = '0';
+  }
+});
+
+C.addEventListener('click',     () => { dropBlock(); document.getElementById('tap-hint').style.opacity='0'; });
+C.addEventListener('touchstart', e => { e.preventDefault(); dropBlock(); document.getElementById('tap-hint').style.opacity='0'; }, { passive: false });
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('screen-game').classList.contains('show')) {
+    sizeCanvas(); draw();
+  }
+});
+</script>
+</body>
+</html>

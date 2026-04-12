@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NEON NEXUS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;
+  --grid-line:rgba(0,255,180,0.04);
+  --neon-green:#00ffb3;
+  --neon-pink:#ff2d6b;
+  --neon-blue:#00c8ff;
+  --neon-orange:#ff8c00;
+  --neon-yellow:#f5ff00;
+  --neon-purple:#b44fff;
+  --nexus-red:#ff3a2d;
+  --nexus-gold:#ffd700;
+  --text:#c8f5e8;
+  --dim:#3a6b58;
+  --panel:rgba(0,255,180,0.04);
+  --panel-border:rgba(0,255,180,0.12);
+  --p1-color:#ff3a2d;
+  --p2-color:#00ffb3;
+}
+
+html,body{
+  width:100%;min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+#cursor{
+  position:fixed;width:8px;height:8px;
+  background:var(--nexus-gold);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 10px var(--nexus-gold),0 0 20px var(--nexus-gold);
+}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:100;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none;
+}
+
+#bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 30s linear infinite;
+}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:40px 40px}}
+
+.corner{position:fixed;width:80px;height:80px;border-color:var(--nexus-gold);border-style:solid;opacity:0.3;z-index:1;}
+.corner-tl{top:20px;left:20px;border-width:2px 0 0 2px}
+.corner-tr{top:20px;right:20px;border-width:2px 2px 0 0}
+.corner-bl{bottom:20px;left:20px;border-width:0 0 2px 2px}
+.corner-br{bottom:20px;right:20px;border-width:0 2px 2px 0}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.35s ease;
+  padding:20px;
+}
+.screen.show{opacity:1;pointer-events:all}
+
+/* ── LOGO ── */
+.logo-wrap{text-align:center;margin-bottom:32px}
+.logo-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(54px,11vw,110px);
+  letter-spacing:8px;line-height:0.9;
+  background:linear-gradient(90deg,var(--nexus-red),var(--nexus-gold) 40%,var(--nexus-red) 80%,var(--neon-yellow));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+  filter:drop-shadow(0 0 22px rgba(255,58,45,0.6));
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.logo-sub{font-size:11px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;margin-top:8px;}
+.logo-sub span{color:var(--nexus-gold);animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.logo-nexus{font-size:clamp(32px,7vw,60px);display:block;margin-bottom:8px;
+  filter:drop-shadow(0 0 14px rgba(255,215,0,0.7));animation:wobble 3s ease-in-out infinite;}
+@keyframes wobble{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;
+  padding:14px 48px;border:2px solid var(--nexus-gold);
+  background:transparent;color:var(--nexus-gold);cursor:pointer;border-radius:2px;
+  position:relative;overflow:hidden;transition:color 0.2s,box-shadow 0.2s;
+  display:block;width:100%;max-width:320px;margin:0 auto;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;background:var(--nexus-gold);
+  transform:translateX(-101%);transition:transform 0.2s ease;z-index:-1;
+}
+.btn:hover::before{transform:translateX(0)}
+.btn:hover{color:var(--bg);box-shadow:0 0 30px rgba(255,215,0,0.4)}
+.btn:active{transform:scale(0.97)}
+.btn.red{border-color:var(--nexus-red);color:var(--nexus-red)}
+.btn.red::before{background:var(--nexus-red)}
+.btn.red:hover{color:var(--bg);box-shadow:0 0 30px rgba(255,58,45,0.4)}
+.btn.green{border-color:var(--neon-green);color:var(--neon-green)}
+.btn.green::before{background:var(--neon-green)}
+.btn.green:hover{color:var(--bg);box-shadow:0 0 30px rgba(0,255,180,0.4)}
+
+.btn-gap{display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px;align-items:center;}
+
+/* ── MODE CARDS ── */
+.mode-cards{
+  display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;
+}
+.mode-card{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;
+  padding:24px 28px;cursor:pointer;text-align:center;
+  transition:border-color 0.2s,box-shadow 0.2s;min-width:150px;
+}
+.mode-card:hover{border-color:var(--nexus-gold);box-shadow:0 0 24px rgba(255,215,0,0.12)}
+.mode-card:active{transform:scale(0.97)}
+.mode-icon{font-size:34px;display:block;margin-bottom:10px}
+.mode-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--nexus-gold);}
+.mode-desc{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;}
+
+/* ── NAME INPUT ── */
+.input-group{display:flex;flex-direction:column;gap:18px;width:100%;max-width:320px;margin-bottom:28px;}
+.input-label{font-size:10px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;}
+.neon-input{
+  width:100%;background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:3px;padding:12px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--text);
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;cursor:none;
+}
+.neon-input:focus{border-color:var(--nexus-gold);box-shadow:0 0 16px rgba(255,215,0,0.12);}
+.neon-input::placeholder{color:var(--dim);}
+.player-preview{display:flex;gap:20px;justify-content:center;margin-bottom:8px;}
+.preview-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;
+  padding:6px 14px;border-radius:2px;border:1px solid;
+}
+.badge-1{border-color:var(--p1-color);color:var(--p1-color);}
+.badge-2{border-color:var(--p2-color);color:var(--p2-color);}
+
+/* ── GAME SCREEN ── */
+#screen-game{justify-content:flex-start;padding-top:20px;overflow-y:auto;}
+.game-header{
+  width:100%;max-width:520px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;padding:0 4px;
+}
+.player-tag{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;
+  padding:7px 14px;border-radius:3px;border:1px solid;
+  transition:all 0.3s;opacity:0.3;
+}
+.player-tag.p1-tag{border-color:var(--p1-color);color:var(--p1-color);}
+.player-tag.p2-tag{border-color:var(--p2-color);color:var(--p2-color);}
+.player-tag.active{opacity:1;}
+.player-tag.p1-tag.active{box-shadow:0 0 18px rgba(255,58,45,0.4);}
+.player-tag.p2-tag.active{box-shadow:0 0 18px rgba(0,255,180,0.4);}
+
+.turn-indicator{font-size:10px;letter-spacing:3px;color:var(--dim);text-align:center;text-transform:uppercase;}
+
+/* score strip */
+.score-strip{display:flex;gap:8px;width:100%;max-width:520px;margin-bottom:14px;}
+.score-box{
+  flex:1;background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:4px;padding:8px;text-align:center;
+}
+.score-label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
+.score-val{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1;}
+.score-val.p1{color:var(--p1-color);}
+.score-val.p2{color:var(--p2-color);}
+.score-val.d{color:var(--dim);}
+
+/* ── GAME INFO STRIP ── */
+.info-strip{
+  width:100%;max-width:520px;
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:4px;padding:8px 14px;margin-bottom:14px;
+  font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;
+  display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+}
+.info-strip .tip{color:var(--nexus-gold);}
+.info-strip .p1c{color:var(--p1-color);}
+.info-strip .p2c{color:var(--p2-color);}
+
+/* ── CROSSROADS BOARD ── */
+.board-wrap{
+  position:relative;
+  width:min(90vw,480px);
+  aspect-ratio:1;
+  margin:0 auto;
+  flex-shrink:0;
+}
+
+#board-svg{
+  width:100%;height:100%;
+  cursor:crosshair;
+  overflow:visible;
+}
+
+/* ── RESULT OVERLAY ── */
+.result-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(42px,10vw,88px);
+  letter-spacing:6px;text-align:center;
+  opacity:0;transform:scale(0.7);
+  transition:opacity 0.4s ease,transform 0.4s cubic-bezier(0.175,0.885,0.32,1.4);
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.7);
+  pointer-events:none;white-space:nowrap;z-index:20;
+}
+.result-title.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.result-title.p1-wins{
+  color:var(--p1-color);
+  text-shadow:0 0 40px rgba(255,58,45,0.7),0 0 80px rgba(255,58,45,0.3);
+}
+.result-title.p2-wins{
+  color:var(--p2-color);
+  text-shadow:0 0 40px rgba(0,255,180,0.7),0 0 80px rgba(0,255,180,0.3);
+}
+.result-title.draw{
+  color:var(--nexus-gold);
+  text-shadow:0 0 40px rgba(255,215,0,0.6);
+}
+
+.result-buttons{
+  display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;margin:0 auto;margin-top:12px;
+  opacity:0;transform:translateY(20px);
+  transition:opacity 0.35s ease 0.2s,transform 0.35s ease 0.2s;
+  pointer-events:none;
+}
+.result-buttons.show{opacity:1;transform:translateY(0);pointer-events:all;}
+
+/* thinking */
+#thinking{
+  font-size:10px;letter-spacing:3px;color:var(--nexus-gold);
+  text-transform:uppercase;text-align:center;
+  opacity:0;transition:opacity 0.2s;margin-bottom:6px;
+}
+#thinking.show{opacity:1;}
+
+/* ── PARTICLES ── */
+.particle{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:200;
+}
+
+/* ── HOW TO PLAY ── */
+.how-card{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;
+  padding:24px 28px;width:100%;max-width:420px;margin-bottom:28px;
+}
+.how-title{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;
+  color:var(--nexus-gold);margin-bottom:14px;
+}
+.how-row{
+  display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;
+  font-size:11px;letter-spacing:1px;color:var(--text);line-height:1.6;
+}
+.how-num{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--nexus-gold);
+  flex-shrink:0;line-height:1.2;
+}
+.edge-label{
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:2px;
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="bg-grid"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- ══ HOME ══ -->
+<div class="screen show" id="screen-home">
+  <div class="logo-wrap">
+    <span class="logo-nexus">🔀</span>
+    <div class="logo-line">NEON<br>NEXUS</div>
+    <div class="logo-sub">CROSSROADS &nbsp;<span>▮</span>&nbsp; NEON EDITION</div>
+  </div>
+  <div class="btn-gap">
+    <button class="btn" onclick="goTo('screen-mode')">PLAY</button>
+    <button class="btn red" onclick="goTo('screen-rules')">HOW TO PLAY</button>
+  </div>
+</div>
+
+<!-- ══ RULES ══ -->
+<div class="screen" id="screen-rules">
+  <div class="logo-wrap" style="margin-bottom:20px">
+    <div class="logo-line" style="font-size:clamp(40px,8vw,72px)">HOW TO<br>PLAY</div>
+  </div>
+  <div class="how-card">
+    <div class="how-title">🐓 CROSSROADS RULES</div>
+    <div class="how-row"><span class="how-num">1</span><span>The board is a 7×7 grid of intersections. Players take turns placing one stone each turn.</span></div>
+    <div class="how-row"><span class="how-num">2</span><span><span style="color:var(--p1-color)">RED</span> connects <b>Top ↔ Bottom</b>. <span style="color:var(--p2-color)">GREEN</span> connects <b>Left ↔ Right</b>.</span></div>
+    <div class="how-row"><span class="how-num">3</span><span>Connect your two edges with a continuous chain of your stones (orthogonally or diagonally adjacent).</span></div>
+    <div class="how-row"><span class="how-num">4</span><span>First player to complete the connection <b>wins</b>! No draws possible.</span></div>
+    <div class="how-row"><span class="how-num">5</span><span>In single player mode, the AI uses smart search to challenge you. Good luck!</span></div>
+  </div>
+  <button class="btn" onclick="goTo('screen-home')">BACK</button>
+</div>
+
+<!-- ══ MODE SELECT ══ -->
+<div class="screen" id="screen-mode">
+  <div class="logo-wrap" style="margin-bottom:24px">
+    <div class="logo-line" style="font-size:clamp(40px,8vw,80px)">SELECT<br>MODE</div>
+  </div>
+  <div class="mode-cards">
+    <div class="mode-card" onclick="selectMode('single')">
+      <span class="mode-icon">🤖</span>
+      <div class="mode-title">VS AI</div>
+      <div class="mode-desc">FACE THE MACHINE</div>
+    </div>
+    <div class="mode-card" onclick="selectMode('two')">
+      <span class="mode-icon">👥</span>
+      <div class="mode-title">2 PLAYERS</div>
+      <div class="mode-desc">LOCAL DUEL</div>
+    </div>
+  </div>
+  <button class="btn red" onclick="goTo('screen-home')">BACK</button>
+</div>
+
+<!-- ══ NAMES ══ -->
+<div class="screen" id="screen-names">
+  <div class="logo-wrap" style="margin-bottom:24px">
+    <div class="logo-line" style="font-size:clamp(36px,7vw,68px)">ENTER<br>NAMES</div>
+  </div>
+  <div class="player-preview">
+    <span class="preview-badge badge-1">🔴 P1 — TOP↔BOT</span>
+    <span class="preview-badge badge-2">🟢 P2 — LEFT↔RIGHT</span>
+  </div>
+  <div class="input-group" style="margin-top:18px;">
+    <div>
+      <div class="input-label" style="color:var(--p1-color)">Player 1 name (Red)</div>
+      <input class="neon-input" id="inp-p1" placeholder="PLAYER ONE" maxlength="14" autocomplete="off">
+    </div>
+    <div id="p2-input-wrap">
+      <div class="input-label" style="color:var(--p2-color)">Player 2 name (Green)</div>
+      <input class="neon-input" id="inp-p2" placeholder="PLAYER TWO" maxlength="14" autocomplete="off">
+    </div>
+  </div>
+  <div class="btn-gap">
+    <button class="btn" onclick="startGame()">START GAME</button>
+    <button class="btn red" onclick="goTo('screen-mode')">BACK</button>
+  </div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div class="screen" id="screen-game">
+  <div class="game-header">
+    <div class="player-tag p1-tag" id="tag-p1">P1</div>
+    <div style="text-align:center">
+      <div class="turn-indicator" id="turn-text">YOUR TURN</div>
+      <div id="thinking">⚡ AI THINKING...</div>
+    </div>
+    <div class="player-tag p2-tag" id="tag-p2">P2</div>
+  </div>
+
+  <div class="score-strip">
+    <div class="score-box">
+      <div class="score-label" id="score-label-p1">P1 WINS</div>
+      <div class="score-val p1" id="score-p1">0</div>
+    </div>
+    <div class="score-box">
+      <div class="score-label">DRAWS</div>
+      <div class="score-val d" id="score-d">0</div>
+    </div>
+    <div class="score-box">
+      <div class="score-label" id="score-label-p2">P2 WINS</div>
+      <div class="score-val p2" id="score-p2">0</div>
+    </div>
+  </div>
+
+  <div class="info-strip">
+    <span class="p1c">🔴 TOP ↔ BOTTOM</span>
+    <span style="color:var(--dim)">|</span>
+    <span class="p2c">🟢 LEFT ↔ RIGHT</span>
+    <span style="color:var(--dim)">|</span>
+    <span class="tip">CONNECT YOUR EDGES TO WIN</span>
+  </div>
+
+  <div class="board-wrap">
+    <svg id="board-svg" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg">
+      <!-- edge labels -->
+      <text id="edge-top" x="170" y="12" text-anchor="middle" font-family="Bebas Neue,sans-serif"
+        font-size="11" letter-spacing="3" fill="#ff3a2d" opacity="0.7">TOP</text>
+      <text id="edge-bot" x="170" y="335" text-anchor="middle" font-family="Bebas Neue,sans-serif"
+        font-size="11" letter-spacing="3" fill="#ff3a2d" opacity="0.7">BOTTOM</text>
+      <text id="edge-left" x="5" y="170" text-anchor="middle" font-family="Bebas Neue,sans-serif"
+        font-size="11" letter-spacing="3" fill="#00ffb3" opacity="0.7"
+        transform="rotate(-90,16,170)">LEFT</text>
+      <text id="edge-right" x="328" y="170" text-anchor="middle" font-family="Bebas Neue,sans-serif"
+        font-size="11" letter-spacing="3" fill="#00ffb3" opacity="0.7"
+        transform="rotate(90,328,170)">RIGHT</text>
+      <g id="grid-lines"></g>
+      <g id="stones"></g>
+      <g id="win-path"></g>
+      <g id="hover-layer"></g>
+    </svg>
+    <div class="result-title" id="result-title"></div>
+  </div>
+
+  <div class="result-buttons" id="result-buttons">
+    <button class="btn green" onclick="rematch()">REMATCH</button>
+    <button class="btn red" onclick="goTo('screen-home'); resetAll()">MAIN MENU</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════ */
+const GRID = 7;
+const MARGIN = 30;
+const STEP = (340 - MARGIN * 2) / (GRID - 1);
+
+function nodeXY(r, c) {
+  return { x: MARGIN + c * STEP, y: MARGIN + r * STEP };
+}
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let mode       = 'two';
+let nameP1     = 'PLAYER 1';
+let nameP2     = 'PLAYER 2';
+let board      = [];          // null | 1 | 2
+let current    = 1;           // 1 or 2
+let gameActive = false;
+let scores     = { 1: 0, 2: 0, D: 0 };
+let hoverNode  = null;
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
+
+function selectMode(m) {
+  mode = m;
+  if (m === 'single') {
+    document.getElementById('p2-input-wrap').style.opacity = '0.4';
+    document.getElementById('inp-p2').value = 'AI NEXUS';
+    document.getElementById('inp-p2').disabled = true;
+  } else {
+    document.getElementById('p2-input-wrap').style.opacity = '1';
+    document.getElementById('inp-p2').value = '';
+    document.getElementById('inp-p2').disabled = false;
+  }
+  goTo('screen-names');
+}
+
+/* ══════════════════════════════════════
+   CUSTOM CURSOR
+══════════════════════════════════════ */
+const cursorEl = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursorEl.style.left = e.clientX + 'px';
+  cursorEl.style.top  = e.clientY + 'px';
+});
+
+/* ══════════════════════════════════════
+   START / RESET
+══════════════════════════════════════ */
+function startGame() {
+  nameP1 = document.getElementById('inp-p1').value.trim().toUpperCase() || 'PLAYER 1';
+  nameP2 = mode === 'single' ? 'AI NEXUS'
+         : (document.getElementById('inp-p2').value.trim().toUpperCase() || 'PLAYER 2');
+  resetAll();
+  goTo('screen-game');
+}
+
+function resetAll() {
+  board      = Array(GRID * GRID).fill(null);
+  current    = 1;
+  gameActive = true;
+  hoverNode  = null;
+  hideResult();
+  buildBoard();
+  updateTurnUI();
+  document.getElementById('tag-p1').textContent = nameP1;
+  document.getElementById('tag-p2').textContent = nameP2;
+  document.getElementById('score-label-p1').textContent = nameP1 + ' WINS';
+  document.getElementById('score-label-p2').textContent = nameP2 + ' WINS';
+  updateScores();
+}
+
+function rematch() {
+  board      = Array(GRID * GRID).fill(null);
+  current    = 1;
+  gameActive = true;
+  hoverNode  = null;
+  hideResult();
+  buildBoard();
+  updateTurnUI();
+}
+
+/* ══════════════════════════════════════
+   BUILD BOARD SVG
+══════════════════════════════════════ */
+function buildBoard() {
+  const linesG = document.getElementById('grid-lines');
+  const stonesG = document.getElementById('stones');
+  const hoverG  = document.getElementById('hover-layer');
+  const winG    = document.getElementById('win-path');
+  linesG.innerHTML = '';
+  stonesG.innerHTML = '';
+  hoverG.innerHTML  = '';
+  winG.innerHTML    = '';
+
+  // Edge highlight bands
+  // Top band (row 0)
+  for (let c = 0; c < GRID; c++) {
+    const {x, y} = nodeXY(0, c);
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', x - STEP/2); rect.setAttribute('y', y - STEP/2);
+    rect.setAttribute('width', STEP); rect.setAttribute('height', STEP/2);
+    rect.setAttribute('fill','rgba(255,58,45,0.06)');
+    linesG.appendChild(rect);
+  }
+  // Bottom band
+  for (let c = 0; c < GRID; c++) {
+    const {x, y} = nodeXY(GRID-1, c);
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', x - STEP/2); rect.setAttribute('y', y);
+    rect.setAttribute('width', STEP); rect.setAttribute('height', STEP/2);
+    rect.setAttribute('fill','rgba(255,58,45,0.06)');
+    linesG.appendChild(rect);
+  }
+  // Left band
+  for (let r = 0; r < GRID; r++) {
+    const {x, y} = nodeXY(r, 0);
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', x - STEP/2); rect.setAttribute('y', y - STEP/2);
+    rect.setAttribute('width', STEP/2); rect.setAttribute('height', STEP);
+    rect.setAttribute('fill','rgba(0,255,180,0.06)');
+    linesG.appendChild(rect);
+  }
+  // Right band
+  for (let r = 0; r < GRID; r++) {
+    const {x, y} = nodeXY(r, GRID-1);
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y - STEP/2);
+    rect.setAttribute('width', STEP/2); rect.setAttribute('height', STEP);
+    rect.setAttribute('fill','rgba(0,255,180,0.06)');
+    linesG.appendChild(rect);
+  }
+
+  // Grid lines
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      const {x, y} = nodeXY(r, c);
+      if (c < GRID - 1) {
+        const {x: x2, y: y2} = nodeXY(r, c+1);
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',x);line.setAttribute('y1',y);
+        line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+        line.setAttribute('stroke','rgba(0,255,180,0.15)');line.setAttribute('stroke-width','1');
+        linesG.appendChild(line);
+      }
+      if (r < GRID - 1) {
+        const {x: x2, y: y2} = nodeXY(r+1, c);
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',x);line.setAttribute('y1',y);
+        line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+        line.setAttribute('stroke','rgba(0,255,180,0.15)');line.setAttribute('stroke-width','1');
+        linesG.appendChild(line);
+      }
+    }
+  }
+
+  // Intersection hit zones + ghost dots
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      const {x, y} = nodeXY(r, c);
+      const idx = r * GRID + c;
+
+      // Dim intersection dot
+      const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('r', 3);
+      dot.setAttribute('fill','rgba(0,255,180,0.18)');
+      dot.setAttribute('id',`dot-${idx}`);
+      linesG.appendChild(dot);
+
+      // Invisible hit zone
+      const hit = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      hit.setAttribute('x', x - STEP/2); hit.setAttribute('y', y - STEP/2);
+      hit.setAttribute('width', STEP); hit.setAttribute('height', STEP);
+      hit.setAttribute('fill','transparent');
+      hit.setAttribute('data-idx', idx);
+      hit.setAttribute('style','cursor:pointer');
+      hit.addEventListener('click',   () => onNodeClick(idx));
+      hit.addEventListener('mouseenter', () => onNodeHover(idx));
+      hit.addEventListener('mouseleave', () => onNodeLeave(idx));
+      hoverG.appendChild(hit);
+    }
+  }
+}
+
+/* ══════════════════════════════════════
+   HOVER
+══════════════════════════════════════ */
+function onNodeHover(idx) {
+  if (!gameActive || board[idx]) return;
+  hoverNode = idx;
+  const dot = document.getElementById(`dot-${idx}`);
+  if (dot) {
+    const col = current === 1 ? 'rgba(255,58,45,0.5)' : 'rgba(0,255,180,0.5)';
+    dot.setAttribute('fill', col);
+    dot.setAttribute('r', 5);
+  }
+}
+function onNodeLeave(idx) {
+  hoverNode = null;
+  if (board[idx]) return;
+  const dot = document.getElementById(`dot-${idx}`);
+  if (dot) { dot.setAttribute('fill','rgba(0,255,180,0.18)'); dot.setAttribute('r', 3); }
+}
+
+/* ══════════════════════════════════════
+   PLACE STONE
+══════════════════════════════════════ */
+function onNodeClick(idx) {
+  if (!gameActive || board[idx]) return;
+  if (mode === 'single' && current === 2) return;
+  placeStone(idx, current);
+}
+
+function placeStone(idx, player) {
+  board[idx] = player;
+  drawStone(idx, player);
+
+  const r = Math.floor(idx / GRID), c = idx % GRID;
+  const {x, y} = nodeXY(r, c);
+  const svgRect = document.getElementById('board-svg').getBoundingClientRect();
+  const ratio   = svgRect.width / 340;
+  const px = svgRect.left + x * ratio;
+  const py = svgRect.top  + y * ratio;
+  spawnP(px, py, player === 1 ? '#ff3a2d' : '#00ffb3', 14, 2, 40, 3);
+
+  if (checkWin(player)) { endGame(player); return; }
+
+  current = current === 1 ? 2 : 1;
+  updateTurnUI();
+
+  if (mode === 'single' && current === 2 && gameActive) doAIMove();
+}
+
+function drawStone(idx, player) {
+  const r = Math.floor(idx / GRID), c = idx % GRID;
+  const {x, y} = nodeXY(r, c);
+  const col = player === 1 ? '#ff3a2d' : '#00ffb3';
+  const glow = player === 1 ? 'rgba(255,58,45,0.7)' : 'rgba(0,255,180,0.7)';
+
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+
+  const outer = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  outer.setAttribute('cx', x); outer.setAttribute('cy', y); outer.setAttribute('r', 9);
+  outer.setAttribute('fill', col);
+  outer.setAttribute('style', `filter:drop-shadow(0 0 8px ${glow})`);
+
+  const inner = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  inner.setAttribute('cx', x); inner.setAttribute('cy', y); inner.setAttribute('r', 5);
+  inner.setAttribute('fill', player === 1 ? '#ff9080' : '#80ffe8');
+
+  g.appendChild(outer); g.appendChild(inner);
+  document.getElementById('stones').appendChild(g);
+
+  // Reset dot
+  const dot = document.getElementById(`dot-${idx}`);
+  if (dot) dot.setAttribute('fill', 'transparent');
+}
+
+/* ══════════════════════════════════════
+   WIN CHECK — flood fill / BFS
+   P1 wins if row 0 → row 6 connected
+   P2 wins if col 0 → col 6 connected
+══════════════════════════════════════ */
+function checkWin(player) {
+  const visited = new Set();
+  const queue   = [];
+
+  if (player === 1) {
+    // Start from all of row 0 owned by player
+    for (let c = 0; c < GRID; c++) {
+      const idx = 0 * GRID + c;
+      if (board[idx] === player) { queue.push(idx); visited.add(idx); }
+    }
+    while (queue.length) {
+      const idx = queue.shift();
+      const r = Math.floor(idx / GRID);
+      if (r === GRID - 1) return true;
+      for (const nb of neighbors(idx)) {
+        if (!visited.has(nb) && board[nb] === player) {
+          visited.add(nb); queue.push(nb);
+        }
+      }
+    }
+  } else {
+    // Start from all of col 0 owned by player
+    for (let r = 0; r < GRID; r++) {
+      const idx = r * GRID + 0;
+      if (board[idx] === player) { queue.push(idx); visited.add(idx); }
+    }
+    while (queue.length) {
+      const idx = queue.shift();
+      const c = idx % GRID;
+      if (c === GRID - 1) return true;
+      for (const nb of neighbors(idx)) {
+        if (!visited.has(nb) && board[nb] === player) {
+          visited.add(nb); queue.push(nb);
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function neighbors(idx) {
+  const r = Math.floor(idx / GRID), c = idx % GRID;
+  const result = [];
+  const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+  for (const [dr, dc] of dirs) {
+    const nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < GRID && nc >= 0 && nc < GRID)
+      result.push(nr * GRID + nc);
+  }
+  return result;
+}
+
+/* ══════════════════════════════════════
+   END GAME
+══════════════════════════════════════ */
+function endGame(winner) {
+  gameActive = false;
+  scores[winner]++;
+  updateScores();
+  highlightWinPath(winner);
+
+  const rt = document.getElementById('result-title');
+  const rb = document.getElementById('result-buttons');
+  rt.className = 'result-title';
+  const wName = winner === 1 ? nameP1 : nameP2;
+  rt.textContent = wName + ' WINS!';
+  rt.classList.add(winner === 1 ? 'p1-wins' : 'p2-wins');
+  setTimeout(() => { rt.classList.add('show'); rb.classList.add('show'); }, 350);
+
+  // Big particle burst
+  const svgRect = document.getElementById('board-svg').getBoundingClientRect();
+  spawnP(svgRect.left + svgRect.width/2, svgRect.top + svgRect.height/2,
+    winner === 1 ? '#ff3a2d' : '#00ffb3', 30, 4, 80, 5);
+}
+
+function highlightWinPath(player) {
+  const visited = new Set();
+  const queue   = [];
+  const prev    = {};
+
+  if (player === 1) {
+    for (let c = 0; c < GRID; c++) {
+      const idx = c;
+      if (board[idx] === player) { queue.push(idx); visited.add(idx); prev[idx] = -1; }
+    }
+    let goal = -1;
+    outer: while (queue.length) {
+      const idx = queue.shift();
+      if (Math.floor(idx / GRID) === GRID - 1) { goal = idx; break outer; }
+      for (const nb of neighbors(idx)) {
+        if (!visited.has(nb) && board[nb] === player) {
+          visited.add(nb); prev[nb] = idx; queue.push(nb);
+        }
+      }
+    }
+    if (goal >= 0) drawWinPath(tracePath(prev, goal), player);
+  } else {
+    for (let r = 0; r < GRID; r++) {
+      const idx = r * GRID;
+      if (board[idx] === player) { queue.push(idx); visited.add(idx); prev[idx] = -1; }
+    }
+    let goal = -1;
+    outer: while (queue.length) {
+      const idx = queue.shift();
+      if (idx % GRID === GRID - 1) { goal = idx; break outer; }
+      for (const nb of neighbors(idx)) {
+        if (!visited.has(nb) && board[nb] === player) {
+          visited.add(nb); prev[nb] = idx; queue.push(nb);
+        }
+      }
+    }
+    if (goal >= 0) drawWinPath(tracePath(prev, goal), player);
+  }
+}
+
+function tracePath(prev, goal) {
+  const path = [];
+  let cur = goal;
+  while (cur !== -1) { path.unshift(cur); cur = prev[cur]; }
+  return path;
+}
+
+function drawWinPath(path, player) {
+  const col = player === 1 ? '#ff3a2d' : '#00ffb3';
+  const winG = document.getElementById('win-path');
+  winG.innerHTML = '';
+  for (let i = 0; i < path.length - 1; i++) {
+    const {x:x1,y:y1} = nodeXY(Math.floor(path[i]/GRID), path[i]%GRID);
+    const {x:x2,y:y2} = nodeXY(Math.floor(path[i+1]/GRID), path[i+1]%GRID);
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+    line.setAttribute('stroke',col);line.setAttribute('stroke-width','4');
+    line.setAttribute('stroke-linecap','round');
+    line.setAttribute('opacity','0.7');
+    line.setAttribute('style',`filter:drop-shadow(0 0 6px ${col})`);
+    winG.appendChild(line);
+  }
+}
+
+function hideResult() {
+  const rt = document.getElementById('result-title');
+  const rb = document.getElementById('result-buttons');
+  rt.classList.remove('show'); rb.classList.remove('show');
+}
+
+function updateScores() {
+  document.getElementById('score-p1').textContent = scores[1];
+  document.getElementById('score-p2').textContent = scores[2];
+  document.getElementById('score-d').textContent  = scores.D;
+}
+
+/* ══════════════════════════════════════
+   TURN UI
+══════════════════════════════════════ */
+function updateTurnUI() {
+  const t1 = document.getElementById('tag-p1');
+  const t2 = document.getElementById('tag-p2');
+  const txt = document.getElementById('turn-text');
+  t1.classList.toggle('active', current === 1);
+  t2.classList.toggle('active', current === 2);
+  if (mode === 'single') {
+    txt.textContent = current === 1 ? 'YOUR TURN' : 'AI THINKING...';
+  } else {
+    txt.textContent = (current === 1 ? nameP1 : nameP2) + "'S TURN";
+  }
+}
+
+/* ══════════════════════════════════════
+   AI — Monte-Carlo / Heuristic
+   Uses a simple heuristic: shortest path
+   (BFS) priority — picks move that minimises
+   own path + disrupts opponent.
+══════════════════════════════════════ */
+function aiPathLength(b, player) {
+  // BFS shortest path cost for player
+  const INF = 9999;
+  const dist = Array(GRID * GRID).fill(INF);
+  const q = [];
+
+  if (player === 1) {
+    for (let c = 0; c < GRID; c++) {
+      const idx = c;
+      if (b[idx] !== (player === 1 ? 2 : 1)) {
+        dist[idx] = b[idx] === player ? 0 : 1;
+        q.push(idx);
+      }
+    }
+  } else {
+    for (let r = 0; r < GRID; r++) {
+      const idx = r * GRID;
+      if (b[idx] !== (player === 1 ? 2 : 1)) {
+        dist[idx] = b[idx] === player ? 0 : 1;
+        q.push(idx);
+      }
+    }
+  }
+
+  q.sort((a, b) => dist[a] - dist[b]);
+  let qi = 0;
+  while (qi < q.length) {
+    const idx = q[qi++];
+    const nbs = neighbors(idx);
+    for (const nb of nbs) {
+      const opp = player === 1 ? 2 : 1;
+      if (b[nb] === opp) continue;
+      const cost = b[nb] === player ? 0 : 1;
+      if (dist[idx] + cost < dist[nb]) {
+        dist[nb] = dist[idx] + cost;
+        q.push(nb);
+        q.sort((a, b) => dist[a] - dist[b]);
+      }
+    }
+  }
+
+  if (player === 1) {
+    let min = INF;
+    for (let c = 0; c < GRID; c++) min = Math.min(min, dist[(GRID-1)*GRID+c]);
+    return min;
+  } else {
+    let min = INF;
+    for (let r = 0; r < GRID; r++) min = Math.min(min, dist[r*GRID+(GRID-1)]);
+    return min;
+  }
+}
+
+function getBestAIMove() {
+  const empty = board.map((v,i) => v === null ? i : -1).filter(i => i >= 0);
+  let bestScore = -Infinity;
+  let bestMove  = empty[Math.floor(Math.random() * empty.length)];
+
+  for (const idx of empty) {
+    const b2 = [...board];
+    b2[idx] = 2;
+    const myPath  = aiPathLength(b2, 2);
+    const oppPath = aiPathLength(b2, 1);
+    const score   = -myPath * 2 + oppPath;
+    if (score > bestScore) { bestScore = score; bestMove = idx; }
+  }
+  return bestMove;
+}
+
+function doAIMove() {
+  const thinkEl = document.getElementById('thinking');
+  thinkEl.classList.add('show');
+  setTimeout(() => {
+    thinkEl.classList.remove('show');
+    if (!gameActive) return;
+    const move = getBestAIMove();
+    if (move !== undefined && move >= 0) placeStone(move, 2);
+  }, 480);
+}
+
+/* ══════════════════════════════════════
+   PARTICLES
+══════════════════════════════════════ */
+function spawnP(cx, cy, col, count, minR, maxR, speed) {
+  for (let i = 0; i < count; i++) {
+    const p  = document.createElement('div');
+    p.className = 'particle';
+    const r  = minR + Math.random() * (maxR - minR);
+    const a  = Math.random() * Math.PI * 2;
+    const v  = (0.5 + Math.random()) * speed;
+    const vx = Math.cos(a) * v;
+    const vy = Math.sin(a) * v;
+    const life = 500 + Math.random() * 600;
+    p.style.cssText = `width:${r}px;height:${r}px;background:${col};
+      left:${cx}px;top:${cy}px;
+      box-shadow:0 0 ${r*2}px ${col};
+      transform:translate(-50%,-50%)`;
+    document.body.appendChild(p);
+
+    let start = null;
+    function frame(ts) {
+      if (!start) start = ts;
+      const t = ts - start;
+      const prog = t / life;
+      if (prog >= 1) { p.remove(); return; }
+      p.style.left    = (cx + vx * t * 0.06) + 'px';
+      p.style.top     = (cy + vy * t * 0.06 + 0.04 * t * t * 0.06) + 'px';
+      p.style.opacity = (1 - prog).toFixed(3);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+}
+</script>
+</body>
+</html>

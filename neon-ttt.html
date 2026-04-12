@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NEON X·O</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;
+  --grid-line:rgba(0,255,180,0.04);
+  --neon-green:#00ffb3;
+  --neon-pink:#ff2d6b;
+  --neon-blue:#00c8ff;
+  --neon-orange:#ff8c00;
+  --neon-yellow:#f5ff00;
+  --neon-purple:#b44fff;
+  --text:#c8f5e8;
+  --dim:#3a6b58;
+  --panel:rgba(0,255,180,0.04);
+  --panel-border:rgba(0,255,180,0.12);
+  --x-color:#ff2d6b;
+  --o-color:#00ffb3;
+}
+
+html,body{
+  width:100%;min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+#cursor{
+  position:fixed;width:8px;height:8px;
+  background:var(--neon-green);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 10px var(--neon-green),0 0 20px var(--neon-green);
+}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:100;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none;
+}
+
+#bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 30s linear infinite;
+}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:40px 40px}}
+
+.corner{position:fixed;width:80px;height:80px;border-color:var(--neon-green);border-style:solid;opacity:0.3;z-index:1;}
+.corner-tl{top:20px;left:20px;border-width:2px 0 0 2px}
+.corner-tr{top:20px;right:20px;border-width:2px 2px 0 0}
+.corner-bl{bottom:20px;left:20px;border-width:0 0 2px 2px}
+.corner-br{bottom:20px;right:20px;border-width:0 2px 2px 0}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.35s ease;
+  padding:20px;
+}
+.screen.show{opacity:1;pointer-events:all}
+
+/* ── LOGO ── */
+.logo-wrap{text-align:center;margin-bottom:36px}
+.logo-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(64px,13vw,120px);
+  letter-spacing:8px;line-height:0.9;
+  background:linear-gradient(90deg,var(--neon-green),var(--neon-blue) 50%,var(--neon-green));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+  filter:drop-shadow(0 0 20px rgba(0,255,180,0.5));
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.logo-sub{font-size:11px;letter-spacing:6px;color:var(--dim);text-transform:uppercase;margin-top:8px;}
+.logo-sub span{color:var(--neon-green);animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;
+  padding:14px 48px;border:2px solid var(--neon-green);
+  background:transparent;color:var(--neon-green);cursor:pointer;border-radius:2px;
+  position:relative;overflow:hidden;transition:color 0.2s,box-shadow 0.2s;
+  display:block;width:100%;max-width:320px;margin:0 auto;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;background:var(--neon-green);
+  transform:translateX(-101%);transition:transform 0.2s ease;z-index:-1;
+}
+.btn:hover::before{transform:translateX(0)}
+.btn:hover{color:var(--bg);box-shadow:0 0 30px rgba(0,255,180,0.4)}
+.btn:active{transform:scale(0.97)}
+.btn.pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn.pink::before{background:var(--neon-pink)}
+.btn.pink:hover{color:var(--bg);box-shadow:0 0 30px rgba(255,45,107,0.4)}
+.btn.blue{border-color:var(--neon-blue);color:var(--neon-blue)}
+.btn.blue::before{background:var(--neon-blue)}
+.btn.blue:hover{color:var(--bg);box-shadow:0 0 30px rgba(0,200,255,0.4)}
+
+.btn-sm{
+  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;
+  padding:8px 24px;border:1px solid;background:transparent;cursor:pointer;border-radius:2px;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.btn-sm.green{border-color:var(--neon-green);color:var(--neon-green)}
+.btn-sm.pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn-sm.blue{border-color:var(--neon-blue);color:var(--neon-blue)}
+.btn-sm:hover{filter:brightness(1.3)}
+.btn-sm:active{transform:scale(0.96)}
+
+.btn-gap{display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px;align-items:center;}
+
+/* ── MODE SELECT ── */
+.mode-cards{
+  display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;
+}
+.mode-card{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;
+  padding:24px 28px;cursor:pointer;text-align:center;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  min-width:160px;
+}
+.mode-card:hover{border-color:var(--neon-green);box-shadow:0 0 24px rgba(0,255,180,0.12)}
+.mode-card:active{transform:scale(0.97)}
+.mode-icon{font-size:36px;display:block;margin-bottom:10px}
+.mode-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--neon-green);}
+.mode-desc{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px;}
+
+/* ── NAME INPUT SCREEN ── */
+.input-group{display:flex;flex-direction:column;gap:18px;width:100%;max-width:320px;margin-bottom:28px;}
+.input-label{font-size:10px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;}
+.neon-input{
+  width:100%;background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:3px;padding:12px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--text);
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+  cursor:none;
+}
+.neon-input:focus{border-color:var(--neon-green);box-shadow:0 0 16px rgba(0,255,180,0.12);}
+.neon-input::placeholder{color:var(--dim);}
+.player-preview{
+  display:flex;gap:20px;justify-content:center;margin-bottom:8px;
+}
+.preview-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;
+  padding:6px 14px;border-radius:2px;border:1px solid;
+}
+.badge-x{border-color:var(--x-color);color:var(--x-color);}
+.badge-o{border-color:var(--o-color);color:var(--o-color);}
+
+/* ── GAME SCREEN ── */
+#screen-game{justify-content:flex-start;padding-top:24px;overflow-y:auto;}
+.game-header{
+  width:100%;max-width:480px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;padding:0 4px;
+}
+.player-tag{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;
+  padding:8px 16px;border-radius:3px;border:1px solid;
+  transition:all 0.3s;opacity:0.35;
+}
+.player-tag.x-tag{border-color:var(--x-color);color:var(--x-color);}
+.player-tag.o-tag{border-color:var(--o-color);color:var(--o-color);}
+.player-tag.active{opacity:1;box-shadow:0 0 20px rgba(0,0,0,0.3);}
+.player-tag.x-tag.active{box-shadow:0 0 18px rgba(255,45,107,0.35);}
+.player-tag.o-tag.active{box-shadow:0 0 18px rgba(0,255,180,0.35);}
+
+.turn-indicator{
+  font-size:10px;letter-spacing:3px;color:var(--dim);text-align:center;
+  text-transform:uppercase;
+}
+
+/* score strip */
+.score-strip{
+  display:flex;gap:8px;width:100%;max-width:480px;margin-bottom:18px;
+}
+.score-box{
+  flex:1;background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:4px;padding:10px 8px;text-align:center;
+}
+.score-label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
+.score-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1;}
+.score-val.x{color:var(--x-color);}
+.score-val.o{color:var(--o-color);}
+.score-val.d{color:var(--dim);}
+
+/* ── BOARD ── */
+.board-wrap{
+  position:relative;
+  width:min(90vw,420px);
+  aspect-ratio:1;
+  margin:0 auto;
+}
+.board{
+  width:100%;height:100%;
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  gap:0;position:relative;
+}
+
+/* grid lines drawn as pseudo dividers */
+.board::before,.board::after{
+  content:'';position:absolute;pointer-events:none;z-index:2;
+}
+
+/* grid lines via box shadows on cells */
+.cell{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  border:none;background:transparent;
+  transition:background 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.cell::before{content:'';position:absolute;inset:0;background:transparent;transition:background 0.15s;}
+.cell:hover::before{background:rgba(0,255,180,0.04);}
+.cell:active::before{background:rgba(0,255,180,0.09);}
+.cell.filled{cursor:default;}
+.cell.filled:hover::before{background:transparent;}
+
+/* grid lines */
+.cell:nth-child(1),.cell:nth-child(2),.cell:nth-child(3){border-bottom:2px solid rgba(0,255,180,0.18);}
+.cell:nth-child(7),.cell:nth-child(8),.cell:nth-child(9){border-top:2px solid rgba(0,255,180,0.18);}
+.cell:nth-child(1),.cell:nth-child(4),.cell:nth-child(7){border-right:2px solid rgba(0,255,180,0.18);}
+.cell:nth-child(3),.cell:nth-child(6),.cell:nth-child(9){border-left:2px solid rgba(0,255,180,0.18);}
+.cell:nth-child(2),.cell:nth-child(5),.cell:nth-child(8){border-left:2px solid rgba(0,255,180,0.18);border-right:2px solid rgba(0,255,180,0.18);}
+.cell:nth-child(4),.cell:nth-child(5),.cell:nth-child(6){border-top:2px solid rgba(0,255,180,0.18);border-bottom:2px solid rgba(0,255,180,0.18);}
+
+/* X and O symbols */
+.symbol{
+  width:58%;height:58%;
+  display:flex;align-items:center;justify-content:center;
+  animation:popIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+
+.sym-x svg,.sym-o svg{width:100%;height:100%;}
+
+/* win line overlay */
+#win-line{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:5;
+  opacity:0;transition:opacity 0.3s;
+}
+#win-line.show{opacity:1;}
+
+/* ── RESULT BANNER ── */
+.result-banner{
+  margin-top:20px;text-align:center;
+  min-height:80px;display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.result-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(32px,7vw,56px);letter-spacing:5px;
+  opacity:0;transition:opacity 0.4s;
+}
+.result-title.show{opacity:1;}
+.result-title.x-wins{color:var(--x-color);filter:drop-shadow(0 0 16px rgba(255,45,107,0.6));}
+.result-title.o-wins{color:var(--o-color);filter:drop-shadow(0 0 16px rgba(0,255,180,0.6));}
+.result-title.draw{color:var(--neon-blue);filter:drop-shadow(0 0 16px rgba(0,200,255,0.5));}
+.result-buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;opacity:0;transition:opacity 0.4s 0.2s;}
+.result-buttons.show{opacity:1;}
+
+/* ── PARTICLE CANVAS ── */
+#particle-canvas{position:fixed;inset:0;z-index:50;pointer-events:none;}
+
+/* thinking indicator */
+.thinking{
+  font-size:10px;letter-spacing:3px;color:var(--neon-orange);
+  text-transform:uppercase;
+  opacity:0;transition:opacity 0.2s;
+  text-align:center;margin-top:4px;
+}
+.thinking.show{opacity:1;}
+
+@media(max-width:480px){
+  .mode-card{min-width:130px;padding:18px 16px;}
+  .game-header{flex-direction:column;gap:8px;}
+  .player-tag{font-size:16px;padding:6px 12px;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="bg-grid"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+<canvas id="particle-canvas"></canvas>
+
+<!-- ── HOME ── -->
+<div class="screen show" id="screen-home">
+  <div class="logo-wrap">
+    <div class="logo-line">NEON X·O</div>
+    <div class="logo-sub">// cyberpunk tic-tac-toe <span>_</span> //</div>
+  </div>
+  <div class="mode-cards">
+    <div class="mode-card" onclick="selectMode('single')">
+      <span class="mode-icon">🤖</span>
+      <div class="mode-title">SINGLE</div>
+      <div class="mode-desc">vs computer</div>
+    </div>
+    <div class="mode-card" onclick="selectMode('multi')">
+      <span class="mode-icon">⚡</span>
+      <div class="mode-title">MULTI</div>
+      <div class="mode-desc">2 players</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── NAME INPUT ── -->
+<div class="screen" id="screen-names">
+  <div class="logo-wrap" style="margin-bottom:24px">
+    <div class="logo-line" style="font-size:clamp(40px,8vw,72px)">ENTER CALLSIGNS</div>
+  </div>
+  <div class="player-preview">
+    <div class="preview-badge badge-x">X — <span id="preview-x">PLAYER 1</span></div>
+    <div class="preview-badge badge-o">O — <span id="preview-o">PLAYER 2</span></div>
+  </div>
+  <div class="input-group" id="name-inputs"></div>
+  <div class="btn-gap">
+    <button class="btn" onclick="launchGame()">ENTER THE GRID</button>
+    <button class="btn-sm pink" onclick="showScreen('home')" style="margin-top:4px">← BACK</button>
+  </div>
+</div>
+
+<!-- ── GAME ── -->
+<div class="screen" id="screen-game">
+  <div class="game-header">
+    <div class="player-tag x-tag active" id="tag-x">X — PLAYER 1</div>
+    <div class="turn-indicator" id="turn-text">YOUR TURN</div>
+    <div class="player-tag o-tag" id="tag-o">O — PLAYER 2</div>
+  </div>
+
+  <div class="score-strip">
+    <div class="score-box">
+      <div class="score-label" id="slabel-x">PLAYER 1</div>
+      <div class="score-val x" id="score-x">0</div>
+    </div>
+    <div class="score-box">
+      <div class="score-label">DRAWS</div>
+      <div class="score-val d" id="score-d">0</div>
+    </div>
+    <div class="score-box">
+      <div class="score-label" id="slabel-o">PLAYER 2</div>
+      <div class="score-val o" id="score-o">0</div>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+    <svg id="win-line" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+      <line id="wl" x1="0" y1="0" x2="0" y2="0"
+        stroke="#f5ff00" stroke-width="4" stroke-linecap="round"
+        style="filter:drop-shadow(0 0 8px #f5ff00)"/>
+    </svg>
+  </div>
+
+  <div class="thinking" id="thinking">AI IS CALCULATING...</div>
+
+  <div class="result-banner">
+    <div class="result-title" id="result-title"></div>
+    <div class="result-buttons" id="result-buttons">
+      <button class="btn-sm green" onclick="resetBoard()">PLAY AGAIN</button>
+      <button class="btn-sm blue"  onclick="goToModes()">CHANGE MODE</button>
+      <button class="btn-sm pink"  onclick="showScreen('home')">EXIT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   CURSOR
+══════════════════════════════════════ */
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+
+/* ══════════════════════════════════════
+   PARTICLES
+══════════════════════════════════════ */
+const pCanvas = document.getElementById('particle-canvas');
+const pCtx    = pCanvas.getContext('2d');
+let particles = [];
+
+function resizePC() { pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; }
+resizePC();
+window.addEventListener('resize', resizePC);
+
+function spawnP(x, y, color, count = 18, speed = 2.5, life = 50, size = 3) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const v = Math.random() * speed;
+    particles.push({
+      x, y, color,
+      vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+      life, maxLife: life, size: Math.random() * size + 1
+    });
+  }
+}
+
+function updateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  particles = particles.filter(p => p.life > 0);
+  for (const p of particles) {
+    const a = p.life / p.maxLife;
+    pCtx.save();
+    pCtx.globalAlpha = a * 0.85;
+    pCtx.fillStyle   = p.color;
+    pCtx.shadowBlur  = 8; pCtx.shadowColor = p.color;
+    pCtx.beginPath(); pCtx.arc(p.x, p.y, p.size * a, 0, Math.PI * 2); pCtx.fill();
+    pCtx.restore();
+    p.x += p.vx; p.y += p.vy; p.vx *= 0.94; p.vy *= 0.94; p.life--;
+  }
+}
+(function pLoop() { requestAnimationFrame(pLoop); updateParticles(); })();
+
+/* ══════════════════════════════════════
+   SCREEN MANAGEMENT
+══════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById('screen-' + id).classList.add('show');
+}
+
+/* ══════════════════════════════════════
+   GAME STATE
+   (All declared at top — no temporal dead zone issues)
+══════════════════════════════════════ */
+let mode       = 'single'; // 'single' | 'multi'
+let nameX      = 'PLAYER 1';
+let nameO      = 'PLAYER 2';
+let board      = Array(9).fill(null); // null | 'X' | 'O'
+let current    = 'X';  // whose turn
+let gameActive = false;
+let scores     = { X: 0, O: 0, D: 0 };
+
+/* ══════════════════════════════════════
+   MODE SELECTION
+══════════════════════════════════════ */
+function selectMode(m) {
+  mode = m;
+  const inputs = document.getElementById('name-inputs');
+  inputs.innerHTML = '';
+
+  if (m === 'single') {
+    inputs.innerHTML = `
+      <div>
+        <div class="input-label">Your callsign (plays as X)</div>
+        <input class="neon-input" id="inp-x" type="text" maxlength="14" placeholder="ENTER NAME" autocomplete="off" spellcheck="false">
+      </div>`;
+  } else {
+    inputs.innerHTML = `
+      <div>
+        <div class="input-label">Player X callsign</div>
+        <input class="neon-input" id="inp-x" type="text" maxlength="14" placeholder="PLAYER 1" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <div class="input-label">Player O callsign</div>
+        <input class="neon-input" id="inp-o" type="text" maxlength="14" placeholder="PLAYER 2" autocomplete="off" spellcheck="false">
+      </div>`;
+  }
+
+  /* live preview */
+  const inpX = document.getElementById('inp-x');
+  const inpO = document.getElementById('inp-o');
+  if (inpX) inpX.addEventListener('input', () => {
+    document.getElementById('preview-x').textContent = inpX.value.toUpperCase() || 'PLAYER 1';
+  });
+  if (inpO) inpO.addEventListener('input', () => {
+    document.getElementById('preview-o').textContent = inpO.value.toUpperCase() || 'PLAYER 2';
+  });
+
+  document.getElementById('preview-x').textContent = 'PLAYER 1';
+  document.getElementById('preview-o').textContent = mode === 'single' ? 'AI UNIT' : 'PLAYER 2';
+
+  showScreen('names');
+}
+
+function launchGame() {
+  const inpX = document.getElementById('inp-x');
+  const inpO = document.getElementById('inp-o');
+  nameX = (inpX && inpX.value.trim()) ? inpX.value.trim().toUpperCase() : 'PLAYER 1';
+  nameO = mode === 'single'
+    ? 'AI UNIT'
+    : ((inpO && inpO.value.trim()) ? inpO.value.trim().toUpperCase() : 'PLAYER 2');
+
+  scores = { X: 0, O: 0, D: 0 };
+  initGameScreen();
+  showScreen('game');
+}
+
+function goToModes() {
+  showScreen('home');
+}
+
+/* ══════════════════════════════════════
+   GAME SCREEN INIT
+══════════════════════════════════════ */
+function initGameScreen() {
+  /* labels */
+  document.getElementById('tag-x').textContent   = `X — ${nameX}`;
+  document.getElementById('tag-o').textContent   = `O — ${nameO}`;
+  document.getElementById('slabel-x').textContent = nameX;
+  document.getElementById('slabel-o').textContent = nameO;
+  resetBoard();
+}
+
+function resetBoard() {
+  board      = Array(9).fill(null);
+  current    = 'X';
+  gameActive = true;
+  hideResult();
+  renderBoard();
+  updateTurnUI();
+  /* hide win line */
+  document.getElementById('win-line').classList.remove('show');
+}
+
+/* ══════════════════════════════════════
+   BOARD RENDER
+══════════════════════════════════════ */
+function renderBoard() {
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  board.forEach((val, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (val ? ' filled' : '');
+    cell.dataset.i = i;
+    if (val) cell.innerHTML = val === 'X' ? svgX() : svgO();
+    else cell.addEventListener('click', () => onCellClick(i));
+    el.appendChild(cell);
+  });
+}
+
+function svgX() {
+  return `<div class="symbol sym-x">
+    <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+      <line x1="8" y1="8" x2="52" y2="52" stroke="#ff2d6b" stroke-width="6" stroke-linecap="round"
+        style="filter:drop-shadow(0 0 8px #ff2d6b)"/>
+      <line x1="52" y1="8" x2="8" y2="52" stroke="#ff2d6b" stroke-width="6" stroke-linecap="round"
+        style="filter:drop-shadow(0 0 8px #ff2d6b)"/>
+    </svg>
+  </div>`;
+}
+
+function svgO() {
+  return `<div class="symbol sym-o">
+    <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="22" fill="none" stroke="#00ffb3" stroke-width="6"
+        style="filter:drop-shadow(0 0 8px #00ffb3)"/>
+    </svg>
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   CLICK HANDLER
+══════════════════════════════════════ */
+function onCellClick(i) {
+  if (!gameActive || board[i]) return;
+  if (mode === 'single' && current === 'O') return; /* AI's turn */
+
+  makeMove(i, current);
+}
+
+function makeMove(i, player) {
+  board[i] = player;
+  renderBoard();
+
+  /* particle burst at cell position */
+  const cellEl = document.getElementById('board').children[i];
+  const rect   = cellEl.getBoundingClientRect();
+  const cx     = rect.left + rect.width / 2;
+  const cy     = rect.top  + rect.height / 2;
+  spawnP(cx, cy, player === 'X' ? '#ff2d6b' : '#00ffb3', 14, 2, 40, 3);
+
+  const result = checkResult(board);
+  if (result) { endGame(result); return; }
+
+  current = current === 'X' ? 'O' : 'X';
+  updateTurnUI();
+
+  if (mode === 'single' && current === 'O' && gameActive) {
+    doAIMove();
+  }
+}
+
+/* ══════════════════════════════════════
+   TURN UI
+══════════════════════════════════════ */
+function updateTurnUI() {
+  const tagX = document.getElementById('tag-x');
+  const tagO = document.getElementById('tag-o');
+  const txt  = document.getElementById('turn-text');
+
+  tagX.classList.toggle('active', current === 'X');
+  tagO.classList.toggle('active', current === 'O');
+
+  if (mode === 'single') {
+    txt.textContent = current === 'X' ? 'YOUR TURN' : 'AI THINKING...';
+  } else {
+    txt.textContent = (current === 'X' ? nameX : nameO) + "'S TURN";
+  }
+}
+
+/* ══════════════════════════════════════
+   WIN CHECK
+══════════════════════════════════════ */
+const LINES = [
+  [0,1,2],[3,4,5],[6,7,8], // rows
+  [0,3,6],[1,4,7],[2,5,8], // cols
+  [0,4,8],[2,4,6]          // diags
+];
+
+function checkResult(b) {
+  for (const [a, c, d] of LINES) {
+    if (b[a] && b[a] === b[c] && b[a] === b[d]) return { winner: b[a], line: [a, c, d] };
+  }
+  if (b.every(v => v)) return { winner: 'D' };
+  return null;
+}
+
+/* ══════════════════════════════════════
+   END GAME
+══════════════════════════════════════ */
+function endGame(result) {
+  gameActive = false;
+
+  if (result.winner !== 'D') {
+    scores[result.winner]++;
+    drawWinLine(result.line);
+    /* big burst on winning cells */
+    result.line.forEach(i => {
+      const cellEl = document.getElementById('board').children[i];
+      const rect   = cellEl.getBoundingClientRect();
+      spawnP(rect.left + rect.width/2, rect.top + rect.height/2,
+        result.winner === 'X' ? '#ff2d6b' : '#00ffb3', 22, 3, 60, 4);
+    });
+  } else {
+    scores.D++;
+  }
+
+  updateScores();
+
+  /* show result */
+  const rt = document.getElementById('result-title');
+  const rb = document.getElementById('result-buttons');
+  rt.className = 'result-title';
+  if (result.winner === 'D') {
+    rt.textContent = 'DRAW';
+    rt.classList.add('draw');
+  } else if (result.winner === 'X') {
+    rt.textContent = nameX + ' WINS';
+    rt.classList.add('x-wins');
+  } else {
+    rt.textContent = nameO + ' WINS';
+    rt.classList.add('o-wins');
+  }
+  setTimeout(() => { rt.classList.add('show'); rb.classList.add('show'); }, 300);
+}
+
+function hideResult() {
+  const rt = document.getElementById('result-title');
+  const rb = document.getElementById('result-buttons');
+  rt.classList.remove('show');
+  rb.classList.remove('show');
+}
+
+function updateScores() {
+  document.getElementById('score-x').textContent = scores.X;
+  document.getElementById('score-o').textContent = scores.O;
+  document.getElementById('score-d').textContent = scores.D;
+}
+
+/* ══════════════════════════════════════
+   WIN LINE DRAW
+══════════════════════════════════════ */
+function drawWinLine(line) {
+  const boardEl = document.getElementById('board');
+  const bRect   = boardEl.getBoundingClientRect();
+  const wlSvg   = document.getElementById('win-line');
+  const wl      = document.getElementById('wl');
+
+  function cellCenter(i) {
+    const c = boardEl.children[i].getBoundingClientRect();
+    return {
+      x: ((c.left + c.width / 2)  - bRect.left) / bRect.width  * 300,
+      y: ((c.top  + c.height / 2) - bRect.top)  / bRect.height * 300
+    };
+  }
+
+  const a = cellCenter(line[0]);
+  const b = cellCenter(line[2]);
+
+  /* extend slightly past cells */
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  const ext = 18;
+  const nx = dx / len * ext, ny = dy / len * ext;
+
+  wl.setAttribute('x1', a.x - nx);
+  wl.setAttribute('y1', a.y - ny);
+  wl.setAttribute('x2', b.x + nx);
+  wl.setAttribute('y2', b.y + ny);
+  wlSvg.classList.add('show');
+}
+
+/* ══════════════════════════════════════
+   AI — MINIMAX (perfect play)
+══════════════════════════════════════ */
+function minimax(b, isMax, alpha, beta) {
+  const res = checkResult(b);
+  if (res) {
+    if (res.winner === 'O') return  10;
+    if (res.winner === 'X') return -10;
+    return 0;
+  }
+
+  if (isMax) {
+    let best = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (!b[i]) {
+        b[i] = 'O';
+        best = Math.max(best, minimax(b, false, alpha, beta));
+        b[i] = null;
+        alpha = Math.max(alpha, best);
+        if (beta <= alpha) break;
+      }
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (!b[i]) {
+        b[i] = 'X';
+        best = Math.min(best, minimax(b, true, alpha, beta));
+        b[i] = null;
+        beta = Math.min(beta, best);
+        if (beta <= alpha) break;
+      }
+    }
+    return best;
+  }
+}
+
+function getBestMove(b) {
+  let bestScore = -Infinity, bestMove = -1;
+  for (let i = 0; i < 9; i++) {
+    if (!b[i]) {
+      b[i] = 'O';
+      const score = minimax(b, false, -Infinity, Infinity);
+      b[i] = null;
+      if (score > bestScore) { bestScore = score; bestMove = i; }
+    }
+  }
+  return bestMove;
+}
+
+function doAIMove() {
+  const thinking = document.getElementById('thinking');
+  thinking.classList.add('show');
+  /* small delay so it feels like the AI "thinks" */
+  setTimeout(() => {
+    thinking.classList.remove('show');
+    if (!gameActive) return;
+    const move = getBestMove([...board]);
+    if (move !== -1) makeMove(move, 'O');
+  }, 420);
+}
+</script>
+</body>
+</html>

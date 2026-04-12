@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apps by Sadaf Abdullah — browser-based productivity tools built with HTML, CSS and JavaScript.">
+<meta property="og:title" content="Sadaf Abdullah — Apps">
+<meta property="og:description" content="Browser-based apps built by Sadaf Abdullah.">
+<meta property="og:url" content="https://theabdsadaf.github.io/apps.html">
+<title>Apps — Sadaf Abdullah</title>
+<link rel="icon" type="image/png" href="LOGO.png">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d0f;
+  --bg2: #18181c;
+  --bg3: #1e1e24;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text1: #f0f0f5;
+  --text2: #a0a0b0;
+  --text3: #606070;
+  --accent: #7c6dfa;
+  --accent2: #a594ff;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text1); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+.bg-grid { position: fixed; inset: 0; z-index: 0; background-image: linear-gradient(rgba(124,109,250,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,109,250,0.04) 1px, transparent 1px); background-size: 48px 48px; animation: gridDrift 30s linear infinite; }
+@keyframes gridDrift { 0%{background-position:0 0} 100%{background-position:48px 48px} }
+.bg-orb { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; }
+.orb1 { width: 400px; height: 400px; background: rgba(124,109,250,0.12); top: -100px; right: -80px; animation: float1 8s ease-in-out infinite; }
+.orb2 { width: 300px; height: 300px; background: rgba(80,180,255,0.07); bottom: 0; left: -60px; animation: float2 10s ease-in-out infinite; }
+@keyframes float1 { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(30px) scale(1.05)} }
+@keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+
+/* NAV */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: center; padding: 16px 24px; }
+.nav-inner { display: flex; align-items: center; gap: 4px; background: rgba(13,13,15,0.7); backdrop-filter: blur(20px); border: 1px solid var(--border2); border-radius: 100px; padding: 6px 8px; }
+.nav-link { text-decoration: none; color: var(--text2); font-size: 13px; font-weight: 500; padding: 7px 18px; border-radius: 100px; transition: all 0.2s ease; letter-spacing: 0.2px; }
+.nav-link:hover { color: var(--text1); background: rgba(255,255,255,0.07); }
+.nav-link.active { color: var(--text1); background: rgba(124,109,250,0.25); border: 1px solid rgba(124,109,250,0.3); }
+
+.wrap { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 110px 24px 80px; }
+
+/* PAGE HERO */
+.page-hero { text-align: center; margin-bottom: 56px; }
+.page-title { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -1px; background: linear-gradient(135deg, #f0f0f5 30%, #a594ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }
+.page-sub { font-size: 15px; color: var(--text2); line-height: 1.6; max-width: 440px; margin: 0 auto; }
+
+/* SECTION HEADING */
+.bio-heading { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent2); margin-bottom: 16px; padding-left: 2px; display: flex; align-items: center; gap: 10px; }
+.bio-heading::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, rgba(124,109,250,0.3), transparent); }
+
+/* APP CARDS — full width, more detail */
+.apps-list { display: flex; flex-direction: column; gap: 14px; }
+
+.app-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: var(--text1);
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.app-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 10% 50%, rgba(124,109,250,0.07), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.app-card:hover { border-color: rgba(124,109,250,0.35); transform: translateX(4px); box-shadow: 0 10px 36px rgba(0,0,0,0.45); }
+.app-card:hover::before { opacity: 1; }
+.app-card:active { transform: scale(0.99); }
+
+.app-icon {
+  width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
+  background: rgba(124,109,250,0.12);
+  border: 1px solid rgba(124,109,250,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.app-body { flex: 1; min-width: 0; }
+.app-title { font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 3px; }
+.app-subtitle { font-size: 11px; color: var(--accent2); font-family: 'Courier New', monospace; letter-spacing: 1px; opacity: 0.8; margin-bottom: 10px; }
+.app-desc { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 14px; }
+
+.app-features { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.app-feature { font-size: 12px; color: var(--text3); display: flex; align-items: flex-start; gap: 8px; }
+.app-feature::before { content: '—'; color: var(--accent2); opacity: 0.6; flex-shrink: 0; }
+
+.app-footer { display: flex; align-items: center; justify-content: space-between; }
+.app-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.app-tag { font-size: 11px; padding: 3px 9px; border-radius: 6px; background: rgba(124,109,250,0.1); border: 1px solid rgba(124,109,250,0.18); color: var(--text2); }
+.app-open {
+  font-size: 12px; font-weight: 600; color: var(--accent2);
+  display: flex; align-items: center; gap: 4px;
+  transition: gap 0.2s, color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.app-card:hover .app-open { gap: 8px; color: var(--text1); }
+
+@media(max-width: 480px) {
+  .app-card { flex-direction: column; gap: 14px; }
+  .app-icon { width: 48px; height: 48px; font-size: 24px; }
+}
+
+/* FOOTER */
+.footer { text-align: center; color: var(--text3); font-size: 12px; margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); }
+.footer span { color: var(--accent2); }
+
+/* ANIMATIONS */
+.fade-in { opacity: 0; transform: translateY(18px); animation: fadeUp 0.55s ease forwards; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+.d1{animation-delay:0.05s} .d2{animation-delay:0.12s} .d3{animation-delay:0.2s}
+.d4{animation-delay:0.28s} .d5{animation-delay:0.36s} .d6{animation-delay:0.44s}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-link" href="index.html">About</a>
+    <a class="nav-link" href="games.html">Games</a>
+    <a class="nav-link active" href="apps.html">Apps</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="page-hero fade-in d1">
+    <div class="page-title">Apps</div>
+    <div class="page-sub">Browser-based productivity tools — fully client-side, no backend, no login required beyond what each app manages itself.</div>
+  </div>
+
+  <div class="bio-heading fade-in d2">2 Apps</div>
+
+  <div class="apps-list">
+
+    <a class="app-card fade-in d3" href="autograder.html">
+      <div class="app-icon">📊</div>
+      <div class="app-body">
+        <div class="app-title">AutoGrader</div>
+        <div class="app-subtitle">// for teachers //</div>
+        <div class="app-desc">A classroom management tool for teachers. Add students with their marks and the app automatically assigns grades — then track, search, and analyse the whole class at a glance.</div>
+        <div class="app-features">
+          <div class="app-feature">Auto-grading from marks (A+ through F scale)</div>
+          <div class="app-feature">Search, sort & filter the student roster</div>
+          <div class="app-feature">Grade distribution charts & top-5 leaderboard</div>
+          <div class="app-feature">Undo / redo history up to 10 steps</div>
+          <div class="app-feature">Per-teacher data stored locally in the browser</div>
+        </div>
+        <div class="app-footer">
+          <div class="app-tags"><span class="app-tag">Education</span><span class="app-tag">LocalStorage</span><span class="app-tag">Charts</span></div>
+          <div class="app-open">Open ↗</div>
+        </div>
+      </div>
+    </a>
+
+    <a class="app-card fade-in d4" href="expense-tracker.html">
+      <div class="app-icon">💸</div>
+      <div class="app-body">
+        <div class="app-title">Expense Tracker</div>
+        <div class="app-subtitle">// track your spendings //</div>
+        <div class="app-desc">A personal finance tracker with multi-user sign-in, categorised expenses, and visual breakdowns. See where your money goes with monthly trend charts and a category donut.</div>
+        <div class="app-features">
+          <div class="app-feature">Multi-user auth stored entirely in the browser</div>
+          <div class="app-feature">Add, edit & delete expenses with categories</div>
+          <div class="app-feature">Monthly trend bars & category donut chart</div>
+          <div class="app-feature">Search, sort & filter by category</div>
+          <div class="app-feature">Stats overview — total, average, largest expense</div>
+        </div>
+        <div class="app-footer">
+          <div class="app-tags"><span class="app-tag">Finance</span><span class="app-tag">LocalStorage</span><span class="app-tag">Charts</span></div>
+          <div class="app-open">Open ↗</div>
+        </div>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer fade-in d5">
+    <p>Sadaf Abdullah · Dhaka, Bangladesh · <span>theabdsadaf.github.io</span></p>
+  </div>
+
+</div>
+</body>
+</html>

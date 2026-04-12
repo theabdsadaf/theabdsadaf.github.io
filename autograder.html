@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUTOGRADER</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;
+  --grid-line:rgba(0,200,255,0.04);
+  --neon-blue:#00c8ff;
+  --neon-green:#00ffb3;
+  --neon-pink:#ff2d6b;
+  --neon-orange:#ff8c00;
+  --neon-yellow:#f5ff00;
+  --neon-purple:#b44fff;
+  --text:#c8eef5;
+  --dim:#3a5a6b;
+  --panel:rgba(0,200,255,0.04);
+  --panel-border:rgba(0,200,255,0.12);
+  --danger:#ff2d6b;
+  --success:#00ffb3;
+}
+
+html,body{
+  width:100%;min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  overflow-x:hidden;
+}
+
+#bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 30s linear infinite;
+  pointer-events:none;
+}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:40px 40px}}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;
+}
+
+.corner{position:fixed;width:60px;height:60px;border-color:var(--neon-blue);border-style:solid;opacity:0.2;z-index:1;pointer-events:none;}
+.corner-tl{top:16px;left:16px;border-width:2px 0 0 2px}
+.corner-tr{top:16px;right:16px;border-width:2px 2px 0 0}
+.corner-bl{bottom:16px;left:16px;border-width:0 0 2px 2px}
+.corner-br{bottom:16px;right:16px;border-width:0 2px 2px 0}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.3s ease;
+  padding:20px;overflow-y:auto;
+}
+.screen.show{opacity:1;pointer-events:all}
+
+#screen-app{
+  position:relative;
+  display:none;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  padding:0;
+  overflow:hidden;
+}
+#screen-app.show{display:flex;}
+
+/* ── LOGO ── */
+.logo-wrap{text-align:center;margin-bottom:32px}
+.logo-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(52px,11vw,100px);
+  letter-spacing:6px;line-height:0.9;
+  background:linear-gradient(90deg,var(--neon-blue),var(--neon-purple) 50%,var(--neon-blue));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+  filter:drop-shadow(0 0 18px rgba(0,200,255,0.4));
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.logo-sub{font-size:10px;letter-spacing:5px;color:var(--dim);text-transform:uppercase;margin-top:6px;}
+.logo-sub span{color:var(--neon-blue);animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── FORMS ── */
+.form-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:32px 28px;
+  width:100%;max-width:380px;
+}
+.form-title{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;
+  color:var(--neon-blue);margin-bottom:22px;
+}
+.field{margin-bottom:16px;}
+.field-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:5px;display:block;}
+.neon-input{
+  width:100%;background:rgba(0,200,255,0.03);
+  border:1px solid var(--panel-border);border-radius:3px;
+  padding:11px 14px;font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--text);outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.neon-input:focus{border-color:var(--neon-blue);box-shadow:0 0 14px rgba(0,200,255,0.1);}
+.neon-input::placeholder{color:var(--dim);}
+.neon-select{
+  width:100%;background:#080d12;
+  border:1px solid var(--panel-border);border-radius:3px;
+  padding:11px 14px;font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--text);outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  appearance:none;cursor:pointer;
+}
+.neon-select:focus{border-color:var(--neon-blue);box-shadow:0 0 14px rgba(0,200,255,0.1);}
+.neon-select option{background:#080d12;}
+
+.field-err{font-size:9px;letter-spacing:2px;color:var(--neon-pink);margin-top:4px;display:none;}
+.field-err.show{display:block;}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;
+  padding:13px 44px;border:2px solid var(--neon-blue);
+  background:transparent;color:var(--neon-blue);cursor:pointer;border-radius:2px;
+  position:relative;overflow:hidden;transition:color 0.2s,box-shadow 0.2s;
+  display:block;width:100%;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;background:var(--neon-blue);
+  transform:translateX(-101%);transition:transform 0.2s ease;z-index:-1;
+}
+.btn:hover::before{transform:translateX(0)}
+.btn:hover{color:var(--bg);box-shadow:0 0 24px rgba(0,200,255,0.35)}
+.btn:active{transform:scale(0.98)}
+.btn.pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn.pink::before{background:var(--neon-pink)}
+.btn.pink:hover{color:var(--bg);box-shadow:0 0 24px rgba(255,45,107,0.35)}
+.btn.green{border-color:var(--neon-green);color:var(--neon-green)}
+.btn.green::before{background:var(--neon-green)}
+.btn.green:hover{color:var(--bg);box-shadow:0 0 24px rgba(0,255,179,0.35)}
+.btn.orange{border-color:var(--neon-orange);color:var(--neon-orange)}
+.btn.orange::before{background:var(--neon-orange)}
+.btn.orange:hover{color:var(--bg);}
+.btn.sm{font-size:14px;letter-spacing:3px;padding:8px 18px;border-width:1px;}
+
+.btn-row{display:flex;gap:10px;margin-top:18px;}
+.switch-link{
+  font-size:10px;letter-spacing:2px;color:var(--dim);text-align:center;
+  margin-top:14px;cursor:pointer;
+}
+.switch-link span{color:var(--neon-blue);text-decoration:underline;}
+
+/* ── APP LAYOUT ── */
+.app-topbar{
+  background:rgba(4,6,13,0.95);border-bottom:1px solid var(--panel-border);
+  padding:12px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;
+  position:sticky;top:0;z-index:30;
+  backdrop-filter:blur(8px);
+}
+.app-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:5px;
+  background:linear-gradient(90deg,var(--neon-blue),var(--neon-purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  white-space:nowrap;
+}
+.app-user{
+  font-size:10px;letter-spacing:2px;color:var(--dim);
+  padding:5px 10px;border:1px solid var(--panel-border);border-radius:2px;
+}
+.app-user span{color:var(--neon-blue);}
+.topbar-spacer{flex:1;}
+.topbar-tabs{display:flex;gap:2px;}
+.tab-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:3px;
+  padding:7px 16px;border:1px solid transparent;background:transparent;
+  color:var(--dim);cursor:pointer;border-radius:2px;transition:all 0.2s;
+  white-space:nowrap;
+}
+.tab-btn:hover{color:var(--text);border-color:var(--panel-border);}
+.tab-btn.active{color:var(--neon-blue);border-color:var(--neon-blue);
+  box-shadow:0 0 12px rgba(0,200,255,0.12);}
+.logout-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;
+  padding:7px 14px;border:1px solid var(--neon-pink);color:var(--neon-pink);
+  background:transparent;cursor:pointer;border-radius:2px;transition:all 0.2s;
+}
+.logout-btn:hover{background:var(--neon-pink);color:var(--bg);}
+
+.app-body{flex:1;overflow-y:auto;padding:24px;}
+
+/* ── VIEWS ── */
+.view{display:none;}
+.view.active{display:block;}
+
+/* ── STATS ROW ── */
+.stats-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:5px;padding:16px;
+}
+.stat-card-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
+.stat-card-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1;}
+.stat-card-val.blue{color:var(--neon-blue);}
+.stat-card-val.yellow{color:var(--neon-yellow);}
+.stat-card-val.green{color:var(--neon-green);}
+.stat-card-val.orange{color:var(--neon-orange);}
+.stat-card-val.pink{color:var(--neon-pink);}
+.stat-card-val.purple{color:var(--neon-purple);}
+
+/* ── ADD FORM ── */
+.add-form-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:24px;margin-bottom:24px;
+}
+.add-form-title{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;
+  color:var(--neon-blue);margin-bottom:18px;
+}
+.form-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;margin-bottom:16px;
+}
+
+/* ── TABLE ── */
+.table-header-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;gap:12px;flex-wrap:wrap;
+}
+.section-title{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;color:var(--text);
+}
+.search-wrap{position:relative;}
+.search-input{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:3px;padding:8px 12px 8px 32px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);outline:none;
+  width:200px;transition:border-color 0.2s;
+}
+.search-input:focus{border-color:var(--neon-blue);}
+.search-input::placeholder{color:var(--dim);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:12px;pointer-events:none;}
+
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.filter-chip{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;
+  padding:5px 12px;border:1px solid var(--panel-border);color:var(--dim);
+  background:transparent;cursor:pointer;border-radius:2px;transition:all 0.15s;
+}
+.filter-chip:hover{border-color:var(--neon-blue);color:var(--neon-blue);}
+.filter-chip.active{border-color:var(--neon-blue);color:var(--neon-blue);
+  background:rgba(0,200,255,0.06);}
+
+.student-table{width:100%;border-collapse:collapse;}
+.student-table th{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:3px;
+  color:var(--dim);padding:10px 12px;text-align:left;
+  border-bottom:1px solid var(--panel-border);white-space:nowrap;cursor:pointer;
+}
+.student-table th:hover{color:var(--neon-blue);}
+.student-table td{
+  padding:11px 12px;border-bottom:1px solid rgba(0,200,255,0.05);
+  font-size:12px;vertical-align:middle;
+}
+.student-table tr:hover td{background:rgba(0,200,255,0.025);}
+.student-table .empty-row td{
+  text-align:center;color:var(--dim);padding:32px;
+  font-size:11px;letter-spacing:2px;
+}
+
+/* Grade badges */
+.grade-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;
+  padding:3px 10px;border-radius:2px;border:1px solid;display:inline-block;
+  min-width:36px;text-align:center;
+}
+.grade-A-plus{border-color:var(--neon-green);color:var(--neon-green);}
+.grade-A{border-color:var(--neon-blue);color:var(--neon-blue);}
+.grade-B{border-color:var(--neon-purple);color:var(--neon-purple);}
+.grade-C{border-color:var(--neon-yellow);color:var(--neon-yellow);}
+.grade-D{border-color:var(--neon-orange);color:var(--neon-orange);}
+.grade-F{border-color:var(--neon-pink);color:var(--neon-pink);}
+
+.marks-cell{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);}
+.id-cell{color:var(--dim);font-size:11px;white-space:nowrap;}
+.name-cell{color:var(--text);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.action-cell{display:flex;gap:6px;align-items:center;}
+.action-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;
+  padding:4px 10px;border:1px solid;background:transparent;cursor:pointer;
+  border-radius:2px;transition:all 0.15s;
+}
+.action-btn.edit{border-color:var(--neon-blue);color:var(--neon-blue);}
+.action-btn.edit:hover{background:var(--neon-blue);color:var(--bg);}
+.action-btn.del{border-color:var(--neon-pink);color:var(--neon-pink);}
+.action-btn.del:hover{background:var(--neon-pink);color:var(--bg);}
+
+/* ── UNDO/REDO ROW ── */
+.undo-row{
+  display:flex;gap:8px;margin-bottom:16px;align-items:center;
+}
+.undo-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;
+  padding:6px 14px;border:1px solid var(--panel-border);color:var(--dim);
+  background:transparent;cursor:pointer;border-radius:2px;transition:all 0.2s;
+}
+.undo-btn:hover:not(:disabled){border-color:var(--neon-yellow);color:var(--neon-yellow);}
+.undo-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.undo-info{font-size:9px;letter-spacing:2px;color:var(--dim);margin-left:auto;}
+
+/* ── MODAL ── */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(4,6,13,0.88);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.modal-backdrop.open{opacity:1;pointer-events:all;}
+.modal{
+  background:#060e12;border:1px solid var(--panel-border);border-radius:6px;
+  padding:28px;width:100%;max-width:420px;
+  transform:translateY(20px);transition:transform 0.25s;
+}
+.modal-backdrop.open .modal{transform:translateY(0);}
+.modal-title{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;
+  color:var(--neon-blue);margin-bottom:20px;
+}
+
+/* ── CHARTS VIEW ── */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+.chart-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:20px;
+}
+.chart-title{
+  font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:3px;
+  color:var(--dim);margin-bottom:16px;text-transform:uppercase;
+}
+
+/* bar chart */
+.bar-chart{display:flex;flex-direction:column;gap:10px;}
+.bar-row{display:flex;align-items:center;gap:10px;}
+.bar-label{font-size:10px;letter-spacing:1px;color:var(--dim);width:30px;flex-shrink:0;text-align:center;}
+.bar-track{flex:1;background:rgba(0,200,255,0.06);border-radius:2px;height:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+.bar-val{font-family:'Bebas Neue',sans-serif;font-size:12px;width:40px;text-align:right;flex-shrink:0;}
+
+/* marks scatter / distribution */
+.dist-bars{display:flex;align-items:flex-end;gap:4px;height:100px;padding-top:10px;}
+.dist-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.dist-bar{width:100%;border-radius:2px 2px 0 0;min-height:2px;transition:height 0.5s ease;}
+.dist-label{font-size:8px;letter-spacing:1px;color:var(--dim);white-space:nowrap;}
+
+/* Top students */
+.top-list{display:flex;flex-direction:column;gap:8px;}
+.top-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border:1px solid var(--panel-border);border-radius:3px;
+  background:rgba(0,200,255,0.02);
+}
+.top-rank{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--dim);width:24px;flex-shrink:0;}
+.top-name{flex:1;font-size:11px;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.top-marks{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--neon-blue);flex-shrink:0;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:500;
+  font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:3px;
+  padding:12px 20px;border-radius:3px;border:1px solid;
+  transform:translateY(60px);opacity:0;transition:all 0.3s ease;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:var(--neon-green);color:var(--neon-green);background:rgba(0,255,180,0.08);}
+.toast.error{border-color:var(--neon-pink);color:var(--neon-pink);background:rgba(255,45,107,0.08);}
+.toast.info{border-color:var(--neon-blue);color:var(--neon-blue);background:rgba(0,200,255,0.08);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px;}
+
+@media(max-width:600px){
+  .app-topbar{padding:10px 14px;flex-wrap:wrap;gap:8px;}
+  .topbar-tabs{order:10;width:100%;}
+  .tab-btn{flex:1;text-align:center;}
+  .app-body{padding:14px;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .student-table th:nth-child(2),.student-table td:nth-child(2){display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="bg-grid"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- ══ SIGN IN ══ -->
+<div class="screen show" id="screen-signin">
+  <div class="logo-wrap">
+    <div class="logo-line">AUTO<br>GRADER</div>
+    <div class="logo-sub">// for teachers <span>_</span> //</div>
+  </div>
+  <div class="form-card">
+    <div class="form-title">SIGN IN</div>
+    <div class="field">
+      <label class="field-label">Username</label>
+      <input class="neon-input" id="si-user" placeholder="your_username" autocomplete="off" spellcheck="false">
+      <div class="field-err" id="si-user-err">Username required</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <input class="neon-input" id="si-pass" type="password" placeholder="••••••••">
+      <div class="field-err" id="si-pass-err">Invalid credentials</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="signIn()">SIGN IN</button>
+    </div>
+    <div class="switch-link" onclick="goToSignUp()">No account? <span>Create one →</span></div>
+  </div>
+</div>
+
+<!-- ══ SIGN UP ══ -->
+<div class="screen" id="screen-signup">
+  <div class="logo-wrap">
+    <div class="logo-line">CREATE<br>ACCOUNT</div>
+    <div class="logo-sub">// teacher registration <span>_</span> //</div>
+  </div>
+  <div class="form-card">
+    <div class="form-title">SIGN UP</div>
+    <div class="field">
+      <label class="field-label">Username</label>
+      <input class="neon-input" id="su-user" placeholder="choose_a_username" autocomplete="off" spellcheck="false">
+      <div class="field-err" id="su-user-err">Username already taken</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <input class="neon-input" id="su-pass" type="password" placeholder="min 4 characters">
+      <div class="field-err" id="su-pass-err">Min 4 characters</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Confirm Password</label>
+      <input class="neon-input" id="su-pass2" type="password" placeholder="repeat password">
+      <div class="field-err" id="su-pass2-err">Passwords don't match</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="signUp()">CREATE ACCOUNT</button>
+    </div>
+    <div class="switch-link" onclick="goToSignIn()">Already have an account? <span>Sign in →</span></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="screen" id="screen-app">
+
+  <div class="app-topbar">
+    <div class="app-logo">📊 AGRDR</div>
+    <div class="app-user">LOGGED IN AS <span id="topbar-username">—</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" data-tab="students" onclick="switchTab('students')">STUDENTS</button>
+      <button class="tab-btn" data-tab="add"      onclick="switchTab('add')">+ ADD</button>
+      <button class="tab-btn" data-tab="charts"   onclick="switchTab('charts')">CHARTS</button>
+    </div>
+    <button class="logout-btn" onclick="logout()">LOGOUT</button>
+  </div>
+
+  <div class="app-body">
+
+    <!-- STATS -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- ── TAB: STUDENTS ── -->
+    <div class="view active" id="view-students">
+      <div class="table-header-row">
+        <div class="section-title">ALL STUDENTS</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="search-input" id="search-input" placeholder="Search..." oninput="renderTable()">
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="undo-btn" id="undo-btn" onclick="undo()" title="Undo (Ctrl+Z)">↩ UNDO</button>
+            <button class="undo-btn" id="redo-btn" onclick="redo()" title="Redo (Ctrl+Y)">↪ REDO</button>
+          </div>
+        </div>
+      </div>
+      <div class="filter-row" id="filter-row"></div>
+      <div style="overflow-x:auto;">
+        <table class="student-table" id="student-table">
+          <thead>
+            <tr>
+              <th onclick="sortBy('serial')"># ↕</th>
+              <th onclick="sortBy('id')">STUDENT ID ↕</th>
+              <th onclick="sortBy('name')">NAME ↕</th>
+              <th onclick="sortBy('marks')">MARKS ↕</th>
+              <th onclick="sortBy('grade')">GRADE ↕</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="student-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB: ADD ── -->
+    <div class="view" id="view-add">
+      <div class="add-form-card">
+        <div class="add-form-title">➕ ADD NEW STUDENT</div>
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Student Name</label>
+            <input class="neon-input" type="text" id="add-name" placeholder="Full name" spellcheck="false">
+            <div class="field-err" id="add-name-err">Name required</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Student ID</label>
+            <input class="neon-input" type="text" id="add-id" placeholder="e.g. STU-001" spellcheck="false">
+            <div class="field-err" id="add-id-err">ID required or already exists</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Marks (0 – 100)</label>
+            <input class="neon-input" type="number" id="add-marks" placeholder="0 – 100" min="0" max="100">
+            <div class="field-err" id="add-marks-err">Valid marks (0-100) required</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn green sm" onclick="addStudent()" style="width:auto">ADD STUDENT</button>
+          <button class="btn sm" onclick="clearAddForm()" style="width:auto">CLEAR</button>
+        </div>
+      </div>
+
+      <!-- Grade scale reference -->
+      <div class="add-form-card">
+        <div class="add-form-title">📋 GRADE SCALE</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">
+          <div class="stat-card"><div class="stat-card-label">A+ Grade</div><div class="stat-card-val green">90 – 100</div></div>
+          <div class="stat-card"><div class="stat-card-label">A Grade</div><div class="stat-card-val blue">80 – 89</div></div>
+          <div class="stat-card"><div class="stat-card-label">B Grade</div><div class="stat-card-val purple">70 – 79</div></div>
+          <div class="stat-card"><div class="stat-card-label">C Grade</div><div class="stat-card-val yellow">60 – 69</div></div>
+          <div class="stat-card"><div class="stat-card-label">D Grade</div><div class="stat-card-val orange">50 – 59</div></div>
+          <div class="stat-card"><div class="stat-card-label">F Grade</div><div class="stat-card-val pink">0 – 49</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: CHARTS ── -->
+    <div class="view" id="view-charts">
+      <div class="charts-grid" id="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">GRADE DISTRIBUTION</div>
+          <div class="bar-chart" id="grade-chart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">TOP 5 STUDENTS</div>
+          <div class="top-list" id="top-list"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">MARKS DISTRIBUTION</div>
+          <div class="dist-bars" id="dist-bars"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">PASS / FAIL RATIO</div>
+          <canvas id="donut-canvas" width="120" height="120"></canvas>
+          <div id="donut-legend" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;font-size:10px;letter-spacing:1px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end app-body -->
+</div><!-- end screen-app -->
+
+<!-- ══ EDIT MODAL ══ -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ EDIT STUDENT</div>
+    <input type="hidden" id="edit-serial">
+    <div class="field">
+      <label class="field-label">Student Name</label>
+      <input class="neon-input" id="edit-name" spellcheck="false">
+    </div>
+    <div class="field">
+      <label class="field-label">Student ID</label>
+      <input class="neon-input" id="edit-id" spellcheck="false">
+    </div>
+    <div class="field">
+      <label class="field-label">Marks (0 – 100)</label>
+      <input class="neon-input" type="number" id="edit-marks" min="0" max="100">
+    </div>
+    <div class="btn-row">
+      <button class="btn sm" onclick="saveEdit()">SAVE</button>
+      <button class="btn pink sm" onclick="closeModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   STORAGE HELPERS
+══════════════════════════════════════ */
+const LS = {
+  get:(k)=>{ try{return JSON.parse(localStorage.getItem(k))}catch{return null} },
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),
+  del:(k)=>localStorage.removeItem(k)
+};
+
+function getUsers(){ return LS.get('ag_users') || {}; }
+function saveUsers(u){ LS.set('ag_users', u); }
+function getStudents(){
+  if(!currentUser) return [];
+  return LS.get(`ag_students_${currentUser}`) || [];
+}
+function saveStudents(s){
+  LS.set(`ag_students_${currentUser}`, s);
+}
+
+let currentUser = LS.get('ag_session') || null;
+
+/* ══════════════════════════════════════
+   GRADE CALCULATOR
+══════════════════════════════════════ */
+function calcGrade(marks) {
+  if (marks >= 90) return 'A+';
+  if (marks >= 80) return 'A';
+  if (marks >= 70) return 'B';
+  if (marks >= 60) return 'C';
+  if (marks >= 50) return 'D';
+  return 'F';
+}
+
+function gradeClass(grade) {
+  return { 'A+': 'grade-A-plus', 'A': 'grade-A', 'B': 'grade-B', 'C': 'grade-C', 'D': 'grade-D', 'F': 'grade-F' }[grade] || 'grade-F';
+}
+
+/* ══════════════════════════════════════
+   UNDO / REDO
+══════════════════════════════════════ */
+let undoStack = [], redoStack = [];
+
+function saveState() {
+  undoStack.push(JSON.stringify(getStudents()));
+  if (undoStack.length > 10) undoStack.shift();
+  redoStack = [];
+  updateUndoButtons();
+}
+
+function undo() {
+  if (!undoStack.length) { toast('Nothing to undo.', 'info'); return; }
+  redoStack.push(JSON.stringify(getStudents()));
+  saveStudents(JSON.parse(undoStack.pop()));
+  reserialize();
+  renderStats(); renderTable();
+  updateUndoButtons();
+  toast('Undo successful.', 'info');
+}
+
+function redo() {
+  if (!redoStack.length) { toast('Nothing to redo.', 'info'); return; }
+  undoStack.push(JSON.stringify(getStudents()));
+  saveStudents(JSON.parse(redoStack.pop()));
+  reserialize();
+  renderStats(); renderTable();
+  updateUndoButtons();
+  toast('Redo successful.', 'info');
+}
+
+function updateUndoButtons() {
+  const undoBtn = document.getElementById('undo-btn');
+  const redoBtn = document.getElementById('redo-btn');
+  if (undoBtn) undoBtn.disabled = !undoStack.length;
+  if (redoBtn) redoBtn.disabled = !redoStack.length;
+}
+
+function reserialize() {
+  let students = getStudents();
+  students.forEach((s, i) => { s.serial = i + 1; });
+  saveStudents(students);
+}
+
+/* ══════════════════════════════════════
+   AUTH
+══════════════════════════════════════ */
+function signIn() {
+  const user = document.getElementById('si-user').value.trim();
+  const pass = document.getElementById('si-pass').value;
+  let ok = true;
+  document.getElementById('si-user-err').classList.remove('show');
+  document.getElementById('si-pass-err').classList.remove('show');
+  if (!user) { document.getElementById('si-user-err').textContent='Username required'; document.getElementById('si-user-err').classList.add('show'); ok=false; }
+  const users = getUsers();
+  if (ok && (!users[user] || users[user] !== pass)) {
+    document.getElementById('si-pass-err').textContent='Invalid credentials';
+    document.getElementById('si-pass-err').classList.add('show'); ok=false;
+  }
+  if (!ok) return;
+  currentUser = user;
+  LS.set('ag_session', user);
+  launchApp();
+}
+
+function signUp() {
+  const user = document.getElementById('su-user').value.trim();
+  const pass = document.getElementById('su-pass').value;
+  const pass2 = document.getElementById('su-pass2').value;
+  let ok = true;
+  ['su-user-err','su-pass-err','su-pass2-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  const users = getUsers();
+  if (!user || users[user]) { document.getElementById('su-user-err').textContent=users[user]?'Username already taken':'Username required'; document.getElementById('su-user-err').classList.add('show'); ok=false; }
+  if (pass.length < 4) { document.getElementById('su-pass-err').classList.add('show'); ok=false; }
+  if (pass !== pass2) { document.getElementById('su-pass2-err').classList.add('show'); ok=false; }
+  if (!ok) return;
+  users[user] = pass;
+  saveUsers(users);
+  currentUser = user;
+  LS.set('ag_session', user);
+  launchApp();
+}
+
+function goToSignUp() {
+  document.getElementById('screen-signin').classList.remove('show');
+  document.getElementById('screen-signup').classList.add('show');
+}
+function goToSignIn() {
+  document.getElementById('screen-signup').classList.remove('show');
+  document.getElementById('screen-signin').classList.add('show');
+}
+
+function logout() {
+  currentUser = null;
+  LS.del('ag_session');
+  undoStack = []; redoStack = [];
+  document.getElementById('screen-app').classList.remove('show');
+  document.getElementById('screen-app').style.display = 'none';
+  document.getElementById('screen-signin').classList.add('show');
+  document.getElementById('si-user').value = '';
+  document.getElementById('si-pass').value = '';
+}
+
+function launchApp() {
+  document.getElementById('screen-signin').classList.remove('show');
+  document.getElementById('screen-signup').classList.remove('show');
+  document.getElementById('screen-app').style.display = 'flex';
+  setTimeout(() => document.getElementById('screen-app').classList.add('show'), 10);
+  document.getElementById('topbar-username').textContent = currentUser.toUpperCase();
+  undoStack = []; redoStack = [];
+  updateUndoButtons();
+  renderStats();
+  renderTable();
+  switchTab('students');
+}
+
+/* ══════════════════════════════════════
+   TABS
+══════════════════════════════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  if (tab === 'charts') renderCharts();
+}
+
+/* ══════════════════════════════════════
+   STATS
+══════════════════════════════════════ */
+function renderStats() {
+  const students = getStudents();
+  const total = students.length;
+  const passing = students.filter(s => s.marks >= 50).length;
+  const failing = total - passing;
+  const avg = total ? (students.reduce((s,st) => s + st.marks, 0) / total).toFixed(1) : '—';
+  const highest = total ? Math.max(...students.map(s => s.marks)) : '—';
+  const aPlus = students.filter(s => s.marks >= 90).length;
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-card-label">Total Students</div><div class="stat-card-val blue">${total}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Average Marks</div><div class="stat-card-val yellow">${avg}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Passing</div><div class="stat-card-val green">${passing}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Failing</div><div class="stat-card-val pink">${failing}</div></div>
+    <div class="stat-card"><div class="stat-card-label">Highest Marks</div><div class="stat-card-val orange">${highest}</div></div>
+    <div class="stat-card"><div class="stat-card-label">A+ Students</div><div class="stat-card-val purple">${aPlus}</div></div>
+  `;
+}
+
+/* ══════════════════════════════════════
+   ADD STUDENT
+══════════════════════════════════════ */
+function addStudent() {
+  const name  = document.getElementById('add-name').value.trim();
+  const sid   = document.getElementById('add-id').value.trim();
+  const marks = parseFloat(document.getElementById('add-marks').value);
+
+  let ok = true;
+  ['add-name-err','add-id-err','add-marks-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
+
+  if (!name) { document.getElementById('add-name-err').textContent='Name required'; document.getElementById('add-name-err').classList.add('show'); ok=false; }
+  const existing = getStudents();
+  if (!sid || existing.some(s=>s.id===sid)) { document.getElementById('add-id-err').textContent=!sid?'ID required':'ID already exists'; document.getElementById('add-id-err').classList.add('show'); ok=false; }
+  if (isNaN(marks) || marks < 0 || marks > 100) { document.getElementById('add-marks-err').classList.add('show'); ok=false; }
+  if (!ok) return;
+
+  saveState();
+  const serial = existing.length + 1;
+  existing.push({ serial, id: sid, name, marks, grade: calcGrade(marks) });
+  saveStudents(existing);
+  clearAddForm();
+  renderStats(); renderTable();
+  toast('Student added!', 'success');
+  switchTab('students');
+}
+
+function clearAddForm() {
+  ['add-name','add-id','add-marks'].forEach(id => document.getElementById(id).value = '');
+  ['add-name-err','add-id-err','add-marks-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
+}
+
+/* ══════════════════════════════════════
+   TABLE
+══════════════════════════════════════ */
+let sortField = 'serial', sortDir = 1, activeFilter = 'ALL';
+
+function sortBy(f) {
+  if (sortField === f) sortDir *= -1; else { sortField = f; sortDir = 1; }
+  renderTable();
+}
+
+function renderTable() {
+  const students = getStudents();
+  const search = document.getElementById('search-input').value.toLowerCase();
+
+  const grades = ['ALL', 'A+', 'A', 'B', 'C', 'D', 'F'];
+  document.getElementById('filter-row').innerHTML = grades.map(g =>
+    `<button class="filter-chip${g===activeFilter?' active':''}" onclick="setFilter('${g}')">${g}</button>`
+  ).join('');
+
+  let filtered = students.filter(s => {
+    const matchGrade = activeFilter === 'ALL' || s.grade === activeFilter;
+    const matchSearch = !search ||
+      s.name.toLowerCase().includes(search) ||
+      s.id.toLowerCase().includes(search) ||
+      String(s.marks).includes(search);
+    return matchGrade && matchSearch;
+  });
+
+  filtered.sort((a, b) => {
+    if (sortField === 'serial') return sortDir * (a.serial - b.serial);
+    if (sortField === 'marks')  return sortDir * (a.marks - b.marks);
+    if (sortField === 'name')   return sortDir * a.name.localeCompare(b.name);
+    if (sortField === 'id')     return sortDir * a.id.localeCompare(b.id);
+    if (sortField === 'grade') {
+      const order = {'A+':0,'A':1,'B':2,'C':3,'D':4,'F':5};
+      return sortDir * (order[a.grade] - order[b.grade]);
+    }
+    return 0;
+  });
+
+  const tbody = document.getElementById('student-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">NO STUDENTS FOUND</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((s, i) => `
+    <tr>
+      <td class="id-cell">${s.serial}</td>
+      <td class="id-cell">${s.id}</td>
+      <td class="name-cell" title="${s.name}">${s.name}</td>
+      <td class="marks-cell">${s.marks.toFixed(1)}</td>
+      <td><span class="grade-badge ${gradeClass(s.grade)}">${s.grade}</span></td>
+      <td class="action-cell">
+        <button class="action-btn edit" onclick="openEdit(${s.serial})">EDIT</button>
+        <button class="action-btn del"  onclick="deleteStudent(${s.serial})">DEL</button>
+      </td>
+    </tr>`
+  ).join('');
+
+  updateUndoButtons();
+}
+
+function setFilter(g) { activeFilter = g; renderTable(); }
+
+/* ══════════════════════════════════════
+   DELETE
+══════════════════════════════════════ */
+function deleteStudent(serial) {
+  saveState();
+  let students = getStudents().filter(s => s.serial !== serial);
+  students.forEach((s, i) => s.serial = i + 1);
+  saveStudents(students);
+  renderStats(); renderTable();
+  toast('Student deleted.', 'error');
+}
+
+/* ══════════════════════════════════════
+   EDIT MODAL
+══════════════════════════════════════ */
+function openEdit(serial) {
+  const s = getStudents().find(s => s.serial === serial);
+  if (!s) return;
+  document.getElementById('edit-serial').value = serial;
+  document.getElementById('edit-name').value   = s.name;
+  document.getElementById('edit-id').value     = s.id;
+  document.getElementById('edit-marks').value  = s.marks;
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function saveEdit() {
+  const serial = parseInt(document.getElementById('edit-serial').value);
+  const name   = document.getElementById('edit-name').value.trim();
+  const sid    = document.getElementById('edit-id').value.trim();
+  const marks  = parseFloat(document.getElementById('edit-marks').value);
+
+  if (!name || !sid || isNaN(marks) || marks < 0 || marks > 100) {
+    toast('All fields required & marks 0-100.', 'error'); return;
+  }
+
+  saveState();
+  let students = getStudents();
+  const idx = students.findIndex(s => s.serial === serial);
+  if (idx >= 0) students[idx] = { ...students[idx], name, id: sid, marks, grade: calcGrade(marks) };
+  saveStudents(students);
+  closeModal(); renderStats(); renderTable();
+  toast('Student updated!', 'success');
+}
+
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ══════════════════════════════════════
+   CHARTS
+══════════════════════════════════════ */
+const GRADE_COLORS = {
+  'A+': '#00ffb3', 'A': '#00c8ff', 'B': '#b44fff',
+  'C': '#f5ff00', 'D': '#ff8c00', 'F': '#ff2d6b'
+};
+
+function renderCharts() {
+  const students = getStudents();
+
+  // ── Grade distribution bar chart ──
+  const gradeOrder = ['A+','A','B','C','D','F'];
+  const gradeCounts = {};
+  gradeOrder.forEach(g => gradeCounts[g] = 0);
+  students.forEach(s => { if (gradeCounts[s.grade] !== undefined) gradeCounts[s.grade]++; });
+  const maxCount = Math.max(...Object.values(gradeCounts), 1);
+
+  document.getElementById('grade-chart').innerHTML = gradeOrder.map(g => `
+    <div class="bar-row">
+      <div class="bar-label" style="color:${GRADE_COLORS[g]}">${g}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(gradeCounts[g]/maxCount*100).toFixed(1)}%;background:${GRADE_COLORS[g]}"></div>
+      </div>
+      <div class="bar-val" style="color:${GRADE_COLORS[g]}">${gradeCounts[g]}</div>
+    </div>`).join('');
+
+  // ── Top 5 students ──
+  const top5 = [...students].sort((a,b) => b.marks - a.marks).slice(0, 5);
+  document.getElementById('top-list').innerHTML = top5.length
+    ? top5.map((s, i) => `
+        <div class="top-item">
+          <div class="top-rank" style="color:${['#f5ff00','#c0c0c0','#ff8c00','#c8eef5','#c8eef5'][i]}">${i+1}</div>
+          <div class="top-name">${s.name}</div>
+          <div class="top-marks">${s.marks.toFixed(1)}</div>
+          <span class="grade-badge ${gradeClass(s.grade)}" style="font-size:11px;padding:2px 7px">${s.grade}</span>
+        </div>`).join('')
+    : '<div style="color:var(--dim);font-size:11px;letter-spacing:2px">NO DATA YET</div>';
+
+  // ── Marks distribution (ranges) ──
+  const ranges = [
+    {label:'0-49', min:0, max:49, col:'#ff2d6b'},
+    {label:'50-59',min:50,max:59, col:'#ff8c00'},
+    {label:'60-69',min:60,max:69, col:'#f5ff00'},
+    {label:'70-79',min:70,max:79, col:'#b44fff'},
+    {label:'80-89',min:80,max:89, col:'#00c8ff'},
+    {label:'90-100',min:90,max:100,col:'#00ffb3'},
+  ];
+  const rangeCounts = ranges.map(r => ({ ...r, count: students.filter(s => s.marks >= r.min && s.marks <= r.max).length }));
+  const maxR = Math.max(...rangeCounts.map(r => r.count), 1);
+  document.getElementById('dist-bars').innerHTML = rangeCounts.map(r => `
+    <div class="dist-col">
+      <div class="dist-bar" style="height:${Math.max(2,(r.count/maxR*88)).toFixed(1)}px;background:${r.col};border-top:2px solid ${r.col}"></div>
+      <div class="dist-label">${r.label}</div>
+    </div>`).join('');
+
+  // ── Pass/Fail donut ──
+  const canvas = document.getElementById('donut-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,120,120);
+  const passing = students.filter(s => s.marks >= 50).length;
+  const failing = students.length - passing;
+  const total = students.length;
+
+  if (total > 0) {
+    const slices = [
+      { val: passing, col: '#00ffb3' },
+      { val: failing, col: '#ff2d6b' }
+    ].filter(sl => sl.val > 0);
+    let start = -Math.PI/2;
+    slices.forEach(sl => {
+      const slice = (sl.val / total) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(60,60);
+      ctx.arc(60,60,52,start,start+slice);
+      ctx.closePath();
+      ctx.fillStyle = sl.col;
+      ctx.shadowBlur = 8; ctx.shadowColor = sl.col;
+      ctx.fill();
+      start += slice;
+    });
+    ctx.beginPath(); ctx.arc(60,60,28,0,Math.PI*2);
+    ctx.fillStyle='#060e12'; ctx.shadowBlur=0; ctx.fill();
+    // center text
+    ctx.font = 'bold 11px JetBrains Mono';
+    ctx.fillStyle = '#c8eef5';
+    ctx.textAlign = 'center';
+    ctx.fillText(total, 60, 56);
+    ctx.font = '8px JetBrains Mono';
+    ctx.fillStyle = '#3a5a6b';
+    ctx.fillText('TOTAL', 60, 67);
+  } else {
+    ctx.beginPath(); ctx.arc(60,60,52,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,200,255,0.06)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(60,60,28,0,Math.PI*2);
+    ctx.fillStyle='#060e12'; ctx.fill();
+  }
+
+  document.getElementById('donut-legend').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#00ffb3;flex-shrink:0;"></div>
+      <span style="color:var(--dim)">Passing (≥50)</span>
+      <span style="color:#00ffb3;margin-left:auto">${passing}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#ff2d6b;flex-shrink:0;"></div>
+      <span style="color:var(--dim)">Failing (&lt;50)</span>
+      <span style="color:#ff2d6b;margin-left:auto">${failing}</span>
+    </div>`;
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+let toastTimer;
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+/* ══════════════════════════════════════
+   KEYBOARD SHORTCUTS
+══════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+  if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
+  if (e.key === 'Enter' && document.getElementById('screen-signin').classList.contains('show')) signIn();
+  if (e.key === 'Enter' && document.getElementById('screen-signup').classList.contains('show')) signUp();
+});
+
+/* ══════════════════════════════════════
+   INIT — restore session
+══════════════════════════════════════ */
+if (currentUser && getUsers()[currentUser]) {
+  launchApp();
+} else {
+  currentUser = null;
+  LS.del('ag_session');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EXPENSE TRACKER</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;
+  --grid-line:rgba(0,255,180,0.04);
+  --neon-green:#00ffb3;
+  --neon-pink:#ff2d6b;
+  --neon-blue:#00c8ff;
+  --neon-orange:#ff8c00;
+  --neon-yellow:#f5ff00;
+  --neon-purple:#b44fff;
+  --text:#c8f5e8;
+  --dim:#3a6b58;
+  --panel:rgba(0,255,180,0.04);
+  --panel-border:rgba(0,255,180,0.12);
+  --danger:#ff2d6b;
+  --success:#00ffb3;
+}
+
+html,body{
+  width:100%;min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* ── BG GRID ── */
+#bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 30s linear infinite;
+  pointer-events:none;
+}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:40px 40px}}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;
+}
+
+.corner{position:fixed;width:60px;height:60px;border-color:var(--neon-green);border-style:solid;opacity:0.2;z-index:1;pointer-events:none;}
+.corner-tl{top:16px;left:16px;border-width:2px 0 0 2px}
+.corner-tr{top:16px;right:16px;border-width:2px 2px 0 0}
+.corner-bl{bottom:16px;left:16px;border-width:0 0 2px 2px}
+.corner-br{bottom:16px;right:16px;border-width:0 2px 2px 0}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.3s ease;
+  padding:20px;overflow-y:auto;
+}
+.screen.show{opacity:1;pointer-events:all}
+
+/* ── APP SCREEN ── */
+#screen-app{
+  position:relative;
+  display:none;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  padding:0;
+  overflow:hidden;
+}
+#screen-app.show{display:flex;}
+
+/* ── LOGO ── */
+.logo-wrap{text-align:center;margin-bottom:32px}
+.logo-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(52px,11vw,100px);
+  letter-spacing:6px;line-height:0.9;
+  background:linear-gradient(90deg,var(--neon-green),var(--neon-blue) 50%,var(--neon-green));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+  filter:drop-shadow(0 0 18px rgba(0,255,180,0.4));
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.logo-sub{font-size:10px;letter-spacing:5px;color:var(--dim);text-transform:uppercase;margin-top:6px;}
+.logo-sub span{color:var(--neon-green);animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── FORMS ── */
+.form-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:32px 28px;
+  width:100%;max-width:380px;
+}
+.form-title{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;
+  color:var(--neon-green);margin-bottom:22px;
+}
+.field{margin-bottom:16px;}
+.field-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:5px;display:block;}
+.neon-input{
+  width:100%;background:rgba(0,255,180,0.03);
+  border:1px solid var(--panel-border);border-radius:3px;
+  padding:11px 14px;font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--text);outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.neon-input:focus{border-color:var(--neon-green);box-shadow:0 0 14px rgba(0,255,180,0.1);}
+.neon-input::placeholder{color:var(--dim);}
+.neon-select{
+  width:100%;background:#08120d;
+  border:1px solid var(--panel-border);border-radius:3px;
+  padding:11px 14px;font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--text);outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  appearance:none;cursor:pointer;
+}
+.neon-select:focus{border-color:var(--neon-green);box-shadow:0 0 14px rgba(0,255,180,0.1);}
+.neon-select option{background:#08120d;}
+
+.field-err{font-size:9px;letter-spacing:2px;color:var(--neon-pink);margin-top:4px;display:none;}
+.field-err.show{display:block;}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;
+  padding:13px 44px;border:2px solid var(--neon-green);
+  background:transparent;color:var(--neon-green);cursor:pointer;border-radius:2px;
+  position:relative;overflow:hidden;transition:color 0.2s,box-shadow 0.2s;
+  display:block;width:100%;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;background:var(--neon-green);
+  transform:translateX(-101%);transition:transform 0.2s ease;z-index:-1;
+}
+.btn:hover::before{transform:translateX(0)}
+.btn:hover{color:var(--bg);box-shadow:0 0 24px rgba(0,255,180,0.35)}
+.btn:active{transform:scale(0.98)}
+.btn.pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn.pink::before{background:var(--neon-pink)}
+.btn.pink:hover{color:var(--bg);box-shadow:0 0 24px rgba(255,45,107,0.35)}
+.btn.blue{border-color:var(--neon-blue);color:var(--neon-blue)}
+.btn.blue::before{background:var(--neon-blue)}
+.btn.blue:hover{color:var(--bg);box-shadow:0 0 24px rgba(0,200,255,0.35)}
+.btn.orange{border-color:var(--neon-orange);color:var(--neon-orange)}
+.btn.orange::before{background:var(--neon-orange)}
+.btn.orange:hover{color:var(--bg);}
+.btn.sm{font-size:14px;letter-spacing:3px;padding:8px 18px;border-width:1px;}
+
+.btn-row{display:flex;gap:10px;margin-top:18px;}
+.switch-link{
+  font-size:10px;letter-spacing:2px;color:var(--dim);text-align:center;
+  margin-top:14px;cursor:pointer;
+}
+.switch-link span{color:var(--neon-green);text-decoration:underline;}
+
+/* ── APP LAYOUT ── */
+.app-topbar{
+  background:rgba(4,6,13,0.95);border-bottom:1px solid var(--panel-border);
+  padding:12px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;
+  position:sticky;top:0;z-index:30;
+  backdrop-filter:blur(8px);
+}
+.app-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:5px;
+  background:linear-gradient(90deg,var(--neon-green),var(--neon-blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  white-space:nowrap;
+}
+.app-user{
+  font-size:10px;letter-spacing:2px;color:var(--dim);
+  padding:5px 10px;border:1px solid var(--panel-border);border-radius:2px;
+}
+.app-user span{color:var(--neon-green);}
+.topbar-spacer{flex:1;}
+.topbar-tabs{display:flex;gap:2px;}
+.tab-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:3px;
+  padding:7px 16px;border:1px solid transparent;background:transparent;
+  color:var(--dim);cursor:pointer;border-radius:2px;transition:all 0.2s;
+  white-space:nowrap;
+}
+.tab-btn:hover{color:var(--text);border-color:var(--panel-border);}
+.tab-btn.active{color:var(--neon-green);border-color:var(--neon-green);
+  box-shadow:0 0 12px rgba(0,255,180,0.12);}
+.logout-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;
+  padding:7px 14px;border:1px solid var(--neon-pink);color:var(--neon-pink);
+  background:transparent;cursor:pointer;border-radius:2px;transition:all 0.2s;
+}
+.logout-btn:hover{background:var(--neon-pink);color:var(--bg);}
+
+.app-body{flex:1;overflow-y:auto;padding:24px;}
+
+/* ── VIEWS ── */
+.view{display:none;}
+.view.active{display:block;}
+
+/* ── STATS ROW ── */
+.stats-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:5px;padding:16px;
+}
+.stat-card-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
+.stat-card-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1;}
+.stat-card-val.green{color:var(--neon-green);}
+.stat-card-val.yellow{color:var(--neon-yellow);}
+.stat-card-val.blue{color:var(--neon-blue);}
+.stat-card-val.orange{color:var(--neon-orange);}
+.stat-card-val.pink{color:var(--neon-pink);}
+
+/* ── ADD FORM ── */
+.add-form-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:24px;margin-bottom:24px;
+}
+.add-form-title{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;
+  color:var(--neon-green);margin-bottom:18px;
+}
+.form-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;margin-bottom:16px;
+}
+
+/* ── TABLE ── */
+.table-header-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;gap:12px;flex-wrap:wrap;
+}
+.section-title{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;color:var(--text);
+}
+.search-wrap{position:relative;}
+.search-input{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:3px;padding:8px 12px 8px 32px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);outline:none;
+  width:200px;transition:border-color 0.2s;
+}
+.search-input:focus{border-color:var(--neon-green);}
+.search-input::placeholder{color:var(--dim);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:12px;pointer-events:none;}
+
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.filter-chip{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;
+  padding:5px 12px;border:1px solid var(--panel-border);color:var(--dim);
+  background:transparent;cursor:pointer;border-radius:2px;transition:all 0.15s;
+}
+.filter-chip:hover{border-color:var(--neon-green);color:var(--neon-green);}
+.filter-chip.active{border-color:var(--neon-green);color:var(--neon-green);
+  background:rgba(0,255,180,0.06);}
+
+.expense-table{width:100%;border-collapse:collapse;}
+.expense-table th{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:3px;
+  color:var(--dim);padding:10px 12px;text-align:left;
+  border-bottom:1px solid var(--panel-border);white-space:nowrap;
+}
+.expense-table td{
+  padding:11px 12px;border-bottom:1px solid rgba(0,255,180,0.05);
+  font-size:12px;vertical-align:middle;
+}
+.expense-table tr:hover td{background:rgba(0,255,180,0.025);}
+.expense-table .empty-row td{
+  text-align:center;color:var(--dim);padding:32px;
+  font-size:11px;letter-spacing:2px;
+}
+
+.cat-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:2px;
+  padding:3px 8px;border-radius:2px;border:1px solid;display:inline-block;
+}
+.amount-cell{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--neon-green);}
+.date-cell{color:var(--dim);font-size:11px;white-space:nowrap;}
+.desc-cell{color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.action-cell{display:flex;gap:6px;align-items:center;}
+.action-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;
+  padding:4px 10px;border:1px solid;background:transparent;cursor:pointer;
+  border-radius:2px;transition:all 0.15s;
+}
+.action-btn.edit{border-color:var(--neon-blue);color:var(--neon-blue);}
+.action-btn.edit:hover{background:var(--neon-blue);color:var(--bg);}
+.action-btn.del{border-color:var(--neon-pink);color:var(--neon-pink);}
+.action-btn.del:hover{background:var(--neon-pink);color:var(--bg);}
+
+/* ── MODAL ── */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(4,6,13,0.88);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.modal-backdrop.open{opacity:1;pointer-events:all;}
+.modal{
+  background:#060e0b;border:1px solid var(--panel-border);border-radius:6px;
+  padding:28px;width:100%;max-width:420px;
+  transform:translateY(20px);transition:transform 0.25s;
+}
+.modal-backdrop.open .modal{transform:translateY(0);}
+.modal-title{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;
+  color:var(--neon-blue);margin-bottom:20px;
+}
+
+/* ── CHARTS VIEW ── */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+.chart-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:20px;
+}
+.chart-title{
+  font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:3px;
+  color:var(--dim);margin-bottom:16px;text-transform:uppercase;
+}
+
+/* bar chart */
+.bar-chart{display:flex;flex-direction:column;gap:10px;}
+.bar-row{display:flex;align-items:center;gap:10px;}
+.bar-label{font-size:10px;letter-spacing:1px;color:var(--dim);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{flex:1;background:rgba(0,255,180,0.06);border-radius:2px;height:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+.bar-val{font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--neon-green);width:60px;text-align:right;flex-shrink:0;}
+
+/* donut */
+.donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:1px;}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* monthly trend */
+.trend-bars{display:flex;align-items:flex-end;gap:6px;height:100px;padding-top:10px;}
+.trend-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.trend-bar{width:100%;background:rgba(0,255,180,0.2);border-radius:2px 2px 0 0;min-height:2px;
+  border-top:2px solid var(--neon-green);transition:height 0.5s ease;}
+.trend-month{font-size:8px;letter-spacing:1px;color:var(--dim);white-space:nowrap;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:500;
+  font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:3px;
+  padding:12px 20px;border-radius:3px;border:1px solid;
+  transform:translateY(60px);opacity:0;transition:all 0.3s ease;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:var(--neon-green);color:var(--neon-green);background:rgba(0,255,180,0.08);}
+.toast.error{border-color:var(--neon-pink);color:var(--neon-pink);background:rgba(255,45,107,0.08);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px;}
+
+@media(max-width:600px){
+  .app-topbar{padding:10px 14px;flex-wrap:wrap;gap:8px;}
+  .topbar-tabs{order:10;width:100%;}
+  .tab-btn{flex:1;text-align:center;}
+  .app-body{padding:14px;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .expense-table th:nth-child(3),.expense-table td:nth-child(3){display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="bg-grid"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- ══ SIGN IN ══ -->
+<div class="screen show" id="screen-signin">
+  <div class="logo-wrap">
+    <div class="logo-line">EXPENSE<br>TRACKER</div>
+    <div class="logo-sub">// track your spendings <span>_</span> //</div>
+  </div>
+  <div class="form-card">
+    <div class="form-title">SIGN IN</div>
+    <div class="field">
+      <label class="field-label">Username</label>
+      <input class="neon-input" id="si-user" placeholder="your_username" autocomplete="off" spellcheck="false">
+      <div class="field-err" id="si-user-err">Username required</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <input class="neon-input" id="si-pass" type="password" placeholder="••••••••">
+      <div class="field-err" id="si-pass-err">Invalid credentials</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="signIn()">SIGN IN</button>
+    </div>
+    <div class="switch-link" onclick="goToSignUp()">No account? <span>Create one →</span></div>
+  </div>
+</div>
+
+<!-- ══ SIGN UP ══ -->
+<div class="screen" id="screen-signup">
+  <div class="logo-wrap">
+    <div class="logo-line">CREATE<br>ACCOUNT</div>
+    <div class="logo-sub">// username &amp; password only <span>_</span> //</div>
+  </div>
+  <div class="form-card">
+    <div class="form-title">SIGN UP</div>
+    <div class="field">
+      <label class="field-label">Username</label>
+      <input class="neon-input" id="su-user" placeholder="choose_a_username" autocomplete="off" spellcheck="false">
+      <div class="field-err" id="su-user-err">Username already taken</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <input class="neon-input" id="su-pass" type="password" placeholder="min 4 characters">
+      <div class="field-err" id="su-pass-err">Min 4 characters</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Confirm Password</label>
+      <input class="neon-input" id="su-pass2" type="password" placeholder="repeat password">
+      <div class="field-err" id="su-pass2-err">Passwords don't match</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="signUp()">CREATE ACCOUNT</button>
+    </div>
+    <div class="switch-link" onclick="goToSignIn()">Already have an account? <span>Sign in →</span></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="screen" id="screen-app">
+
+  <div class="app-topbar">
+    <div class="app-logo">💸 EXPNSR</div>
+    <div class="app-user">LOGGED IN AS <span id="topbar-username">—</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" data-tab="expenses" onclick="switchTab('expenses')">EXPENSES</button>
+      <button class="tab-btn" data-tab="add"      onclick="switchTab('add')">+ ADD</button>
+      <button class="tab-btn" data-tab="charts"   onclick="switchTab('charts')">CHARTS</button>
+    </div>
+    <button class="logout-btn" onclick="logout()">LOGOUT</button>
+  </div>
+
+  <div class="app-body">
+
+    <!-- STATS -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- ── TAB: EXPENSES ── -->
+    <div class="view active" id="view-expenses">
+      <div class="table-header-row">
+        <div class="section-title">ALL EXPENSES</div>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="search-input" placeholder="Search..." oninput="renderTable()">
+        </div>
+      </div>
+      <div class="filter-row" id="filter-row"></div>
+      <div style="overflow-x:auto;">
+        <table class="expense-table" id="expense-table">
+          <thead>
+            <tr>
+              <th onclick="sortBy('date')" style="cursor:pointer"># DATE ↕</th>
+              <th>CATEGORY</th>
+              <th>DESCRIPTION</th>
+              <th onclick="sortBy('amount')" style="cursor:pointer">AMOUNT ↕</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="expense-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB: ADD ── -->
+    <div class="view" id="view-add">
+      <div class="add-form-card">
+        <div class="add-form-title">➕ ADD NEW EXPENSE</div>
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Date</label>
+            <input class="neon-input" type="date" id="add-date">
+            <div class="field-err" id="add-date-err">Date required</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Category</label>
+            <select class="neon-select" id="add-cat">
+              <option value="">Select category…</option>
+              <option>Food & Drinks</option>
+              <option>Transport</option>
+              <option>Housing</option>
+              <option>Health</option>
+              <option>Shopping</option>
+              <option>Entertainment</option>
+              <option>Education</option>
+              <option>Utilities</option>
+              <option>Other</option>
+            </select>
+            <div class="field-err" id="add-cat-err">Category required</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Amount ($)</label>
+            <input class="neon-input" type="number" id="add-amount" placeholder="0.00" min="0" step="0.01">
+            <div class="field-err" id="add-amount-err">Valid amount required</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Description</label>
+            <input class="neon-input" id="add-desc" placeholder="Brief description…" maxlength="100">
+            <div class="field-err" id="add-desc-err">Description required</div>
+          </div>
+        </div>
+        <button class="btn" style="max-width:220px;" onclick="addExpense()">ADD EXPENSE</button>
+      </div>
+    </div>
+
+    <!-- ── TAB: CHARTS ── -->
+    <div class="view" id="view-charts">
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">📊 Spending by Category</div>
+          <div class="bar-chart" id="cat-chart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">🍩 Category Split</div>
+          <div class="donut-wrap">
+            <canvas id="donut-canvas" width="120" height="120"></canvas>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+        <div class="chart-card" style="grid-column:1/-1">
+          <div class="chart-title">📈 Monthly Trend (Last 6 months)</div>
+          <div class="trend-bars" id="trend-bars"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end app-body -->
+</div><!-- end screen-app -->
+
+<!-- ══ EDIT MODAL ══ -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ EDIT EXPENSE</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-label">Date</label>
+        <input class="neon-input" type="date" id="edit-date">
+      </div>
+      <div class="field">
+        <label class="field-label">Category</label>
+        <select class="neon-select" id="edit-cat">
+          <option>Food & Drinks</option>
+          <option>Transport</option>
+          <option>Housing</option>
+          <option>Health</option>
+          <option>Shopping</option>
+          <option>Entertainment</option>
+          <option>Education</option>
+          <option>Utilities</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Amount ($)</label>
+        <input class="neon-input" type="number" id="edit-amount" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label class="field-label">Description</label>
+        <input class="neon-input" id="edit-desc" maxlength="100">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="saveEdit()">SAVE</button>
+      <button class="btn pink" onclick="closeModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   STORAGE HELPERS
+══════════════════════════════════════ */
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k),
+};
+
+// users: { [username]: { password, expenses:[] } }
+function getUsers() { return LS.get('et_users') || {}; }
+function saveUsers(u) { LS.set('et_users', u); }
+
+function getExpenses() {
+  const users = getUsers();
+  return (users[currentUser]?.expenses) || [];
+}
+function saveExpenses(arr) {
+  const users = getUsers();
+  if (!users[currentUser]) return;
+  users[currentUser].expenses = arr;
+  saveUsers(users);
+}
+
+/* ══════════════════════════════════════
+   AUTH STATE
+══════════════════════════════════════ */
+let currentUser = LS.get('et_session') || null;
+
+function goToSignIn() { showScreen('signin'); }
+function goToSignUp() { showScreen('signup'); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('show');
+    if (s.id === 'screen-app') s.style.display = 'none';
+  });
+  const el = document.getElementById('screen-' + id);
+  if (id === 'app') {
+    el.style.display = 'flex';
+    requestAnimationFrame(() => el.classList.add('show'));
+  } else {
+    el.classList.add('show');
+  }
+}
+
+/* ══════════════════════════════════════
+   SIGN UP
+══════════════════════════════════════ */
+function signUp() {
+  const u = document.getElementById('su-user').value.trim().toLowerCase();
+  const p = document.getElementById('su-pass').value;
+  const p2 = document.getElementById('su-pass2').value;
+  let ok = true;
+
+  clearErrs('su');
+  if (!u) { showErr('su-user-err', 'Username required'); ok = false; }
+  if (p.length < 4) { showErr('su-pass-err', 'Min 4 characters'); ok = false; }
+  if (p !== p2) { showErr('su-pass2-err', "Passwords don't match"); ok = false; }
+  if (!ok) return;
+
+  const users = getUsers();
+  if (users[u]) { showErr('su-user-err', 'Username already taken'); return; }
+
+  users[u] = { password: p, expenses: [] };
+  saveUsers(users);
+  toast('Account created! Sign in now.', 'success');
+  document.getElementById('si-user').value = u;
+  goToSignIn();
+}
+
+/* ══════════════════════════════════════
+   SIGN IN
+══════════════════════════════════════ */
+function signIn() {
+  const u = document.getElementById('si-user').value.trim().toLowerCase();
+  const p = document.getElementById('si-pass').value;
+  clearErrs('si');
+
+  if (!u) { showErr('si-user-err', 'Username required'); return; }
+  const users = getUsers();
+  if (!users[u] || users[u].password !== p) {
+    showErr('si-pass-err', 'Invalid username or password'); return;
+  }
+
+  currentUser = u;
+  LS.set('et_session', u);
+  launchApp();
+}
+
+function logout() {
+  currentUser = null;
+  LS.del('et_session');
+  sortField = 'date'; sortDir = -1; activeFilter = 'ALL';
+  document.getElementById('si-user').value = '';
+  document.getElementById('si-pass').value = '';
+  goToSignIn();
+  toast('Logged out.', 'success');
+}
+
+function launchApp() {
+  document.getElementById('topbar-username').textContent = currentUser.toUpperCase();
+  // default today in add form
+  document.getElementById('add-date').value = new Date().toISOString().slice(0,10);
+  switchTab('expenses');
+  renderStats();
+  showScreen('app');
+}
+
+/* ══════════════════════════════════════
+   ERR HELPERS
+══════════════════════════════════════ */
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('show');
+}
+function clearErrs(prefix) {
+  document.querySelectorAll(`[id^="${prefix}-"][id$="-err"]`)
+    .forEach(e => e.classList.remove('show'));
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+let toastTimer;
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ══════════════════════════════════════
+   TABS
+══════════════════════════════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + tab));
+  if (tab === 'expenses') renderTable();
+  if (tab === 'charts')   renderCharts();
+}
+
+/* ══════════════════════════════════════
+   STATS
+══════════════════════════════════════ */
+function renderStats() {
+  const exps = getExpenses();
+  const total = exps.reduce((s,e) => s + e.amount, 0);
+  const now = new Date();
+  const thisMonth = exps.filter(e => {
+    const d = new Date(e.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const monthTotal = thisMonth.reduce((s,e) => s + e.amount, 0);
+  const cats = [...new Set(exps.map(e => e.category))].length;
+  const avg = exps.length ? total / exps.length : 0;
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-card-label">Total Spent</div>
+      <div class="stat-card-val green">$${total.toFixed(2)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">This Month</div>
+      <div class="stat-card-val yellow">$${monthTotal.toFixed(2)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Total Entries</div>
+      <div class="stat-card-val blue">${exps.length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Avg per Entry</div>
+      <div class="stat-card-val orange">$${avg.toFixed(2)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Categories</div>
+      <div class="stat-card-val pink">${cats}</div>
+    </div>
+  `;
+}
+
+/* ══════════════════════════════════════
+   ADD EXPENSE
+══════════════════════════════════════ */
+function addExpense() {
+  const date   = document.getElementById('add-date').value;
+  const cat    = document.getElementById('add-cat').value;
+  const amount = parseFloat(document.getElementById('add-amount').value);
+  const desc   = document.getElementById('add-desc').value.trim();
+  let ok = true;
+
+  document.querySelectorAll('[id^="add-"][id$="-err"]').forEach(e => e.classList.remove('show'));
+  if (!date)         { showErr('add-date-err','Date required'); ok = false; }
+  if (!cat)          { showErr('add-cat-err','Category required'); ok = false; }
+  if (!amount || amount <= 0) { showErr('add-amount-err','Valid amount required'); ok = false; }
+  if (!desc)         { showErr('add-desc-err','Description required'); ok = false; }
+  if (!ok) return;
+
+  const exps = getExpenses();
+  exps.push({ id: Date.now(), date, category: cat, amount, description: desc });
+  saveExpenses(exps);
+  renderStats();
+  toast('Expense added!', 'success');
+
+  // reset
+  document.getElementById('add-cat').value = '';
+  document.getElementById('add-amount').value = '';
+  document.getElementById('add-desc').value = '';
+  document.getElementById('add-date').value = new Date().toISOString().slice(0,10);
+  switchTab('expenses');
+}
+
+/* ══════════════════════════════════════
+   TABLE
+══════════════════════════════════════ */
+let sortField = 'date', sortDir = -1, activeFilter = 'ALL';
+
+const CAT_COLORS = {
+  'Food & Drinks':'#00ffb3','Transport':'#00c8ff','Housing':'#b44fff',
+  'Health':'#ff2d6b','Shopping':'#f5ff00','Entertainment':'#ff8c00',
+  'Education':'#00ffb3','Utilities':'#3a6b58','Other':'#c8f5e8'
+};
+
+function sortBy(f) {
+  if (sortField === f) sortDir *= -1; else { sortField = f; sortDir = -1; }
+  renderTable();
+}
+
+function renderTable() {
+  const exps   = getExpenses();
+  const search = document.getElementById('search-input').value.toLowerCase();
+
+  // filters
+  const cats = ['ALL', ...[...new Set(exps.map(e => e.category))]];
+  document.getElementById('filter-row').innerHTML = cats.map(c =>
+    `<button class="filter-chip${c===activeFilter?' active':''}" onclick="setFilter('${c}')">${c}</button>`
+  ).join('');
+
+  let filtered = exps.filter(e => {
+    const matchCat  = activeFilter === 'ALL' || e.category === activeFilter;
+    const matchSearch = !search ||
+      e.description.toLowerCase().includes(search) ||
+      e.category.toLowerCase().includes(search) ||
+      e.date.includes(search);
+    return matchCat && matchSearch;
+  });
+
+  filtered.sort((a, b) => {
+    if (sortField === 'date')   return sortDir * (new Date(a.date) - new Date(b.date));
+    if (sortField === 'amount') return sortDir * (a.amount - b.amount);
+    return 0;
+  });
+
+  const tbody = document.getElementById('expense-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">NO EXPENSES FOUND</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((e, i) => {
+    const col = CAT_COLORS[e.category] || '#c8f5e8';
+    const d   = new Date(e.date);
+    const ds  = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    return `<tr>
+      <td class="date-cell">${i+1}. ${ds}</td>
+      <td><span class="cat-badge" style="border-color:${col};color:${col}">${e.category}</span></td>
+      <td class="desc-cell" title="${e.description}">${e.description}</td>
+      <td class="amount-cell">$${e.amount.toFixed(2)}</td>
+      <td class="action-cell">
+        <button class="action-btn edit" onclick="openEdit(${e.id})">EDIT</button>
+        <button class="action-btn del"  onclick="deleteExpense(${e.id})">DEL</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function setFilter(cat) { activeFilter = cat; renderTable(); }
+
+/* ══════════════════════════════════════
+   DELETE
+══════════════════════════════════════ */
+function deleteExpense(id) {
+  let exps = getExpenses().filter(e => e.id !== id);
+  saveExpenses(exps);
+  renderStats(); renderTable();
+  toast('Expense deleted.', 'error');
+}
+
+/* ══════════════════════════════════════
+   EDIT MODAL
+══════════════════════════════════════ */
+function openEdit(id) {
+  const e = getExpenses().find(e => e.id === id);
+  if (!e) return;
+  document.getElementById('edit-id').value     = id;
+  document.getElementById('edit-date').value   = e.date;
+  document.getElementById('edit-cat').value    = e.category;
+  document.getElementById('edit-amount').value = e.amount;
+  document.getElementById('edit-desc').value   = e.description;
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function saveEdit() {
+  const id     = parseInt(document.getElementById('edit-id').value);
+  const date   = document.getElementById('edit-date').value;
+  const cat    = document.getElementById('edit-cat').value;
+  const amount = parseFloat(document.getElementById('edit-amount').value);
+  const desc   = document.getElementById('edit-desc').value.trim();
+  if (!date || !cat || !amount || !desc) { toast('All fields required.','error'); return; }
+
+  let exps = getExpenses();
+  const idx = exps.findIndex(e => e.id === id);
+  if (idx >= 0) exps[idx] = { id, date, category: cat, amount, description: desc };
+  saveExpenses(exps);
+  closeModal(); renderStats(); renderTable();
+  toast('Expense updated!', 'success');
+}
+
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ══════════════════════════════════════
+   CHARTS
+══════════════════════════════════════ */
+const PALETTE = ['#00ffb3','#00c8ff','#b44fff','#ff2d6b','#f5ff00','#ff8c00','#c8f5e8','#3a6b58'];
+
+function renderCharts() {
+  const exps = getExpenses();
+
+  // ── By Category (bar chart) ──
+  const byCat = {};
+  exps.forEach(e => { byCat[e.category] = (byCat[e.category]||0) + e.amount; });
+  const catEntries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+  const maxCat = catEntries[0]?.[1] || 1;
+  document.getElementById('cat-chart').innerHTML = catEntries.length
+    ? catEntries.map(([cat, amt], i) => `
+        <div class="bar-row">
+          <div class="bar-label" title="${cat}">${cat}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(amt/maxCat*100).toFixed(1)}%;background:${PALETTE[i%PALETTE.length]}"></div></div>
+          <div class="bar-val">$${amt.toFixed(0)}</div>
+        </div>`).join('')
+    : '<div style="color:var(--dim);font-size:11px;letter-spacing:2px">NO DATA YET</div>';
+
+  // ── Donut ──
+  const canvas = document.getElementById('donut-canvas');
+  const ctx    = canvas.getContext('2d');
+  ctx.clearRect(0,0,120,120);
+  const total = catEntries.reduce((s,[,v]) => s+v, 0);
+  if (total > 0) {
+    let start = -Math.PI/2;
+    catEntries.forEach(([,amt], i) => {
+      const slice = (amt/total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(60,60);
+      ctx.arc(60,60,52,start,start+slice);
+      ctx.closePath();
+      ctx.fillStyle = PALETTE[i%PALETTE.length];
+      ctx.shadowBlur = 8; ctx.shadowColor = PALETTE[i%PALETTE.length];
+      ctx.fill();
+      start += slice;
+    });
+    // hole
+    ctx.beginPath(); ctx.arc(60,60,28,0,Math.PI*2);
+    ctx.fillStyle = '#060e0b'; ctx.shadowBlur=0; ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.arc(60,60,52,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,255,180,0.06)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(60,60,28,0,Math.PI*2);
+    ctx.fillStyle='#060e0b'; ctx.fill();
+  }
+  document.getElementById('donut-legend').innerHTML = catEntries.slice(0,6).map(([cat,amt],i) =>
+    `<div class="legend-item">
+      <div class="legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>
+      <span style="color:var(--dim)">${cat}</span>
+      <span style="color:${PALETTE[i%PALETTE.length]};margin-left:auto">$${amt.toFixed(0)}</span>
+    </div>`).join('');
+
+  // ── Monthly Trend ──
+  const months = {};
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months[key] = { label: d.toLocaleString('en',{month:'short'}), total:0 };
+  }
+  exps.forEach(e => {
+    const key = e.date.slice(0,7);
+    if (months[key]) months[key].total += e.amount;
+  });
+  const mVals = Object.values(months);
+  const maxM  = Math.max(...mVals.map(m=>m.total), 1);
+  document.getElementById('trend-bars').innerHTML = mVals.map(m => `
+    <div class="trend-col">
+      <div class="trend-bar" style="height:${Math.max(2,(m.total/maxM*88)).toFixed(1)}px"></div>
+      <div class="trend-month">${m.label}</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════
+   KEYBOARD SHORTCUTS
+══════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.getElementById('screen-signin').classList.contains('show')) signIn();
+  if (e.key === 'Enter' && document.getElementById('screen-signup').classList.contains('show')) signUp();
+});
+
+/* ══════════════════════════════════════
+   INIT — restore session
+══════════════════════════════════════ */
+if (currentUser && getUsers()[currentUser]) {
+  launchApp();
+} else {
+  currentUser = null;
+  LS.del('et_session');
+}
+</script>
+</body>
+</html>
